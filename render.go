@@ -34,6 +34,18 @@ import (
 )
 
 {{range .Types}}
+type I{{.Name}}Collection interface {
+	Clear()
+	Index(rhs *{{.Name}}) (int, error)
+	Insert(i int, n *{{.Name}}) error
+	Append(n *{{.Name}})
+	Remove(i int) error
+	Count() int
+	At(i int) (*{{.Name}}, error)
+	MarshalJSON() ([]byte, error)
+	UnmarshalJSON(data []byte) error
+}
+
 type {{.Name}}Collection struct {
   s []*{{.Name}}
 }

@@ -44,24 +44,6 @@ func (v *{{.Name}}Collection) Clear() {
   v.s = v.s[:0]
 }
 
-func (v *{{.Name}}Collection) Equal(rhs *{{.Name}}Collection) bool {
-  if rhs == nil {
-    return false
-  }
-
-  if len(v.s) != len(rhs.s) {
-    return false
-  }
-
-  for i := range v.s {
-    if !v.s[i].Equal(rhs.s[i]) {
-      return false
-    }
-  }
-
-  return true
-}
-
 func (v *{{.Name}}Collection) MarshalJSON() ([]byte, error) {
   return json.Marshal(v.s)
 }

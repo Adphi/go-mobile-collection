@@ -73,6 +73,10 @@ func (v *{{.Name}}Collection) Insert(i int, n *{{.Name}}) {
   v.s[i] = n
 }
 
+func (v *{{.Name}}Collection) Append(n *{{.Name}}) {
+  v.s = append(v.s, n)
+}
+
 func (v *{{.Name}}Collection) Remove(i int) {
   if i < 0 || i >= len(v.s) {
     fmt.Printf("Vapi::{{.Name}}Collection field_values.go error trying to remove bad index %d\n", i)

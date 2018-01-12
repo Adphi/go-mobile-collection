@@ -54,17 +54,6 @@ func (v *{{.Name}}Collection) UnmarshalJSON(data []byte) error {
   return json.Unmarshal(data, &v.s)
 }
 
-func (v *{{.Name}}Collection) Copy(rhs *{{.Name}}Collection) {
-  v.s = make([]*{{.Name}}, len(rhs.s))
-  copy(v.s, rhs.s)
-}
-
-func (v *{{.Name}}Collection) Clone() *{{.Name}}Collection {
-  return &{{.Name}}Collection{
-    s: v.s[:],
-  }
-}
-
 func (v *{{.Name}}Collection) Index(rhs *{{.Name}}) int {
   for i, lhs := range v.s {
     if lhs == rhs {

@@ -44,6 +44,12 @@ type I{{.Name}}Collection interface {
 	At(i int) (*{{.Name}}, error)
 	MarshalJSON() ([]byte, error)
 	UnmarshalJSON(data []byte) error
+	Iterator() I{{.Name}}Iterator
+}
+
+type I{{.Name}}Iterator interface {
+	HasNext() bool
+	Next() (*{{.Name}}, error)
 }
 
 type {{.Name}}Collection struct {
@@ -110,6 +116,32 @@ func (v *{{.Name}}Collection) At(i int) (*{{.Name}}, error) {
   return v.s[i], nil
 }
 
+func (v *{{.Name}}Collection) Iterator() I{{.Name}}Iterator {
+	return New{{.Name}}Iterator(v)
+}
+
+type {{.Name}}Iterator struct {
+	next int
+	s    []*{{.Name}}
+}
+
+func New{{.Name}}Iterator(col *{{.Name}}Collection) *{{.Name}}Iterator {
+	return &{{.Name}}Iterator{next: 0, s: col.s}
+}
+
+func (it *{{.Name}}Iterator) HasNext() bool {
+	return it.next < len(it.s)
+}
+
+func (it *{{.Name}}Iterator) Next() (*{{.Name}}, error) {
+	if it.HasNext() {
+		val := it.s[it.next]
+		it.next = it.next + 1
+		return val, nil
+	}
+
+	return nil, fmt.Errorf("{{.Name}}Iterator has no more items")
+}
 {{end}}`))
 )
 

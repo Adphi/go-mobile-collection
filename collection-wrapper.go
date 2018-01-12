@@ -20,11 +20,7 @@ import (
 )
 
 func processFile(inputPath string) {
-	log.Printf("Processing file %s", inputPath)
-
 	packageName, types := loadFile(inputPath)
-
-	log.Printf("Found collection-wrapper types to generate: %#v", types)
 
 	outputPath, err := getRenderedPath(inputPath)
 	if err != nil {

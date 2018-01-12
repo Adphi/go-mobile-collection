@@ -54,48 +54,48 @@ func (v *{{.Name}}Collection) UnmarshalJSON(data []byte) error {
   return json.Unmarshal(data, &v.s)
 }
 
-func (v *{{.Name}}Collection) Index(rhs *{{.Name}}) int {
+func (v *{{.Name}}Collection) Index(rhs *{{.Name}}) (int, error) {
   for i, lhs := range v.s {
     if lhs == rhs {
-      return i
+      return i, nil
     }
   }
-  return -1
+  return -1, fmt.Errorf("{{.Name}} not found in {{.Name}}Collection")
 }
 
-func (v *{{.Name}}Collection) Insert(i int, n *{{.Name}}) {
+func (v *{{.Name}}Collection) Insert(i int, n *{{.Name}}) error {
   if i < 0 || i > len(v.s) {
-    fmt.Printf("Vapi::{{.Name}}Collection field_values.go error trying to insert at index %d\n", i)
-    return
+    return fmt.Errorf("{{.Name}}Collection error trying to insert at invalid index %d\n", i)
   }
   v.s = append(v.s, nil)
   copy(v.s[i+1:], v.s[i:])
   v.s[i] = n
+  return nil
 }
 
 func (v *{{.Name}}Collection) Append(n *{{.Name}}) {
   v.s = append(v.s, n)
 }
 
-func (v *{{.Name}}Collection) Remove(i int) {
+func (v *{{.Name}}Collection) Remove(i int) error {
   if i < 0 || i >= len(v.s) {
-    fmt.Printf("Vapi::{{.Name}}Collection field_values.go error trying to remove bad index %d\n", i)
-    return
+    return fmt.Errorf("{{.Name}}Collection error trying to remove invalid index %d\n", i)
   }
   copy(v.s[i:], v.s[i+1:])
   v.s[len(v.s)-1] = nil
   v.s = v.s[:len(v.s)-1]
+  return nil
 }
 
 func (v *{{.Name}}Collection) Count() int {
   return len(v.s)
 }
 
-func (v *{{.Name}}Collection) At(i int) *{{.Name}} {
+func (v *{{.Name}}Collection) At(i int) (*{{.Name}}, error) {
   if i < 0 || i >= len(v.s) {
-    fmt.Printf("Vapi::{{.Name}}Collection field_values.go invalid index %d\n", i)
+    return nil, fmt.Errorf("{{.Name}}Collection invalid index %d\n", i)
   }
-  return v.s[i]
+  return v.s[i], nil
 }
 
 {{end}}`))

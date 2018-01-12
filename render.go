@@ -29,8 +29,8 @@ var (
 package {{.Package}}
 
 import (
-  "fmt"
-  "encoding/json"
+	"fmt"
+	"encoding/json"
 )
 
 {{range .Types}}
@@ -53,67 +53,67 @@ type I{{.Name}}Iterator interface {
 }
 
 type {{.Name}}Collection struct {
-  s []*{{.Name}}
+	s []*{{.Name}}
 }
 
 func New{{.Name}}Collection() *{{.Name}}Collection {
-  return &{{.Name}}Collection{}
+	return &{{.Name}}Collection{}
 }
 
 func (v *{{.Name}}Collection) Clear() {
-  v.s = v.s[:0]
+	v.s = v.s[:0]
 }
 
 func (v *{{.Name}}Collection) MarshalJSON() ([]byte, error) {
-  return json.Marshal(v.s)
+	return json.Marshal(v.s)
 }
 
 func (v *{{.Name}}Collection) UnmarshalJSON(data []byte) error {
-  return json.Unmarshal(data, &v.s)
+	return json.Unmarshal(data, &v.s)
 }
 
 func (v *{{.Name}}Collection) Index(rhs *{{.Name}}) (int, error) {
-  for i, lhs := range v.s {
-    if lhs == rhs {
-      return i, nil
-    }
-  }
-  return -1, fmt.Errorf("{{.Name}} not found in {{.Name}}Collection")
+	for i, lhs := range v.s {
+		if lhs == rhs {
+			return i, nil
+		}
+	}
+	return -1, fmt.Errorf("{{.Name}} not found in {{.Name}}Collection")
 }
 
 func (v *{{.Name}}Collection) Insert(i int, n *{{.Name}}) error {
-  if i < 0 || i > len(v.s) {
-    return fmt.Errorf("{{.Name}}Collection error trying to insert at invalid index %d\n", i)
-  }
-  v.s = append(v.s, nil)
-  copy(v.s[i+1:], v.s[i:])
-  v.s[i] = n
-  return nil
+	if i < 0 || i > len(v.s) {
+		return fmt.Errorf("{{.Name}}Collection error trying to insert at invalid index %d\n", i)
+	}
+	v.s = append(v.s, nil)
+	copy(v.s[i+1:], v.s[i:])
+	v.s[i] = n
+	return nil
 }
 
 func (v *{{.Name}}Collection) Append(n *{{.Name}}) {
-  v.s = append(v.s, n)
+	v.s = append(v.s, n)
 }
 
 func (v *{{.Name}}Collection) Remove(i int) error {
-  if i < 0 || i >= len(v.s) {
-    return fmt.Errorf("{{.Name}}Collection error trying to remove invalid index %d\n", i)
-  }
-  copy(v.s[i:], v.s[i+1:])
-  v.s[len(v.s)-1] = nil
-  v.s = v.s[:len(v.s)-1]
-  return nil
+	if i < 0 || i >= len(v.s) {
+		return fmt.Errorf("{{.Name}}Collection error trying to remove invalid index %d\n", i)
+	}
+	copy(v.s[i:], v.s[i+1:])
+	v.s[len(v.s)-1] = nil
+	v.s = v.s[:len(v.s)-1]
+	return nil
 }
 
 func (v *{{.Name}}Collection) Count() int {
-  return len(v.s)
+	return len(v.s)
 }
 
 func (v *{{.Name}}Collection) At(i int) (*{{.Name}}, error) {
-  if i < 0 || i >= len(v.s) {
-    return nil, fmt.Errorf("{{.Name}}Collection invalid index %d\n", i)
-  }
-  return v.s[i], nil
+	if i < 0 || i >= len(v.s) {
+		return nil, fmt.Errorf("{{.Name}}Collection invalid index %d\n", i)
+	}
+	return v.s[i], nil
 }
 
 func (v *{{.Name}}Collection) Iterator() I{{.Name}}Iterator {
@@ -122,7 +122,7 @@ func (v *{{.Name}}Collection) Iterator() I{{.Name}}Iterator {
 
 type {{.Name}}Iterator struct {
 	next int
-	s    []*{{.Name}}
+	s		[]*{{.Name}}
 }
 
 func New{{.Name}}Iterator(col *{{.Name}}Collection) *{{.Name}}Iterator {

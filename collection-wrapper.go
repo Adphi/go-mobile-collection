@@ -27,7 +27,13 @@ func processFile(inputPath string) {
 		log.Fatalf("Could not get output path: %s", err)
 	}
 
-	output, err := os.OpenFile(outputPath, os.O_WRONLY|os.O_CREATE, 0600)
+	if _, err := os.Stat(outputPath); err == nil {
+		if err := os.Remove(outputPath); err != nil {
+			log.Fatalf("Could not remote output file %s", outputPath)
+		}
+	}
+
+	output, err := os.OpenFile(outputPath, os.O_CREATE, 0600)
 	if err != nil {
 		log.Fatalf("Could not open output file: %s", err)
 	}

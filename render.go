@@ -34,7 +34,7 @@ import (
 )
 
 {{range .Types}}
-type I{{.Name}}Collection interface {
+type {{.Name}}Collection interface {
 	Clear()
 	Index(rhs *{{.Name}}) (int, error)
 	Insert(i int, n *{{.Name}}) error
@@ -44,46 +44,46 @@ type I{{.Name}}Collection interface {
 	At(i int) (*{{.Name}}, error)
 	MarshalJSON() ([]byte, error)
 	UnmarshalJSON(data []byte) error
-	Iterator() I{{.Name}}Iterator
+	Iterator() {{.Name}}Iterator
 }
 
-type I{{.Name}}Iterator interface {
+type {{.Name}}Iterator interface {
 	HasNext() bool
 	Next() (*{{.Name}}, error)
 }
 
-type {{.Name}}Collection struct {
+type _{{.Name}}Collection struct {
 	s []*{{.Name}}
 }
 
-func New{{.Name}}Collection() *{{.Name}}Collection {
-	return &{{.Name}}Collection{}
+func New{{.Name}}Collection() {{.Name}}Collection {
+	return &_{{.Name}}Collection{}
 }
 
-func (v *{{.Name}}Collection) Clear() {
+func (v *_{{.Name}}Collection) Clear() {
 	v.s = v.s[:0]
 }
 
-func (v *{{.Name}}Collection) MarshalJSON() ([]byte, error) {
+func (v *_{{.Name}}Collection) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.s)
 }
 
-func (v *{{.Name}}Collection) UnmarshalJSON(data []byte) error {
+func (v *_{{.Name}}Collection) UnmarshalJSON(data []byte) error {
 	return json.Unmarshal(data, &v.s)
 }
 
-func (v *{{.Name}}Collection) Index(rhs *{{.Name}}) (int, error) {
+func (v *_{{.Name}}Collection) Index(rhs *{{.Name}}) (int, error) {
 	for i, lhs := range v.s {
 		if lhs == rhs {
 			return i, nil
 		}
 	}
-	return -1, fmt.Errorf("{{.Name}} not found in {{.Name}}Collection")
+	return -1, fmt.Errorf("{{.Name}} not found in _{{.Name}}Collection")
 }
 
-func (v *{{.Name}}Collection) Insert(i int, n *{{.Name}}) error {
+func (v *_{{.Name}}Collection) Insert(i int, n *{{.Name}}) error {
 	if i < 0 || i > len(v.s) {
-		return fmt.Errorf("{{.Name}}Collection error trying to insert at invalid index %d\n", i)
+		return fmt.Errorf("_{{.Name}}Collection error trying to insert at invalid index %d\n", i)
 	}
 	v.s = append(v.s, nil)
 	copy(v.s[i+1:], v.s[i:])
@@ -91,13 +91,13 @@ func (v *{{.Name}}Collection) Insert(i int, n *{{.Name}}) error {
 	return nil
 }
 
-func (v *{{.Name}}Collection) Append(n *{{.Name}}) {
+func (v *_{{.Name}}Collection) Append(n *{{.Name}}) {
 	v.s = append(v.s, n)
 }
 
-func (v *{{.Name}}Collection) Remove(i int) error {
+func (v *_{{.Name}}Collection) Remove(i int) error {
 	if i < 0 || i >= len(v.s) {
-		return fmt.Errorf("{{.Name}}Collection error trying to remove invalid index %d\n", i)
+		return fmt.Errorf("_{{.Name}}Collection error trying to remove invalid index %d\n", i)
 	}
 	copy(v.s[i:], v.s[i+1:])
 	v.s[len(v.s)-1] = nil
@@ -105,42 +105,42 @@ func (v *{{.Name}}Collection) Remove(i int) error {
 	return nil
 }
 
-func (v *{{.Name}}Collection) Count() int {
+func (v *_{{.Name}}Collection) Count() int {
 	return len(v.s)
 }
 
-func (v *{{.Name}}Collection) At(i int) (*{{.Name}}, error) {
+func (v *_{{.Name}}Collection) At(i int) (*{{.Name}}, error) {
 	if i < 0 || i >= len(v.s) {
-		return nil, fmt.Errorf("{{.Name}}Collection invalid index %d\n", i)
+		return nil, fmt.Errorf("_{{.Name}}Collection invalid index %d\n", i)
 	}
 	return v.s[i], nil
 }
 
-func (v *{{.Name}}Collection) Iterator() I{{.Name}}Iterator {
+func (v *_{{.Name}}Collection) Iterator() {{.Name}}Iterator {
 	return New{{.Name}}Iterator(v)
 }
 
-type {{.Name}}Iterator struct {
+type _{{.Name}}Iterator struct {
 	next int
 	s		[]*{{.Name}}
 }
 
-func New{{.Name}}Iterator(col *{{.Name}}Collection) *{{.Name}}Iterator {
-	return &{{.Name}}Iterator{next: 0, s: col.s}
+func New{{.Name}}Iterator(col *_{{.Name}}Collection) {{.Name}}Iterator {
+	return &_{{.Name}}Iterator{next: 0, s: col.s}
 }
 
-func (it *{{.Name}}Iterator) HasNext() bool {
+func (it *_{{.Name}}Iterator) HasNext() bool {
 	return it.next < len(it.s)
 }
 
-func (it *{{.Name}}Iterator) Next() (*{{.Name}}, error) {
+func (it *_{{.Name}}Iterator) Next() (*{{.Name}}, error) {
 	if it.HasNext() {
 		val := it.s[it.next]
 		it.next = it.next + 1
 		return val, nil
 	}
 
-	return nil, fmt.Errorf("{{.Name}}Iterator has no more items")
+	return nil, fmt.Errorf("_{{.Name}}Iterator has no more items")
 }
 {{end}}`))
 )

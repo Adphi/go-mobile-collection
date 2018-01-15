@@ -35,6 +35,8 @@ import (
 
 {{range .Types}}
 type {{.Name}}Collection interface {
+	json.Marshaler
+	json.Unmarshaler
 	Clear()
 	Index(rhs *{{.Name}}) (int, error)
 	Insert(i int, n *{{.Name}}) error
@@ -42,8 +44,6 @@ type {{.Name}}Collection interface {
 	Remove(i int) error
 	Count() int
 	At(i int) (*{{.Name}}, error)
-	MarshalJSON() ([]byte, error)
-	UnmarshalJSON(data []byte) error
 	Iterator() {{.Name}}Iterator
 }
 

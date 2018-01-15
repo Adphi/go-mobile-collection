@@ -35,8 +35,6 @@ import (
 
 {{range .Types}}
 type {{.Name}}Collection interface {
-	json.Marshaler
-	json.Unmarshaler
 	Clear()
 	Index(rhs *{{.Name}}) (int, error)
 	Insert(i int, n *{{.Name}}) error
@@ -55,6 +53,13 @@ type {{.Name}}Iterator interface {
 type _{{.Name}}Collection struct {
 	s []*{{.Name}}
 }
+
+// compile-time assurance that the struct matches the interface
+var (
+	_ {{.Name}}Collection = &_{{.Name}}Collection{}
+	_ json.Marshaler = &_{{.Name}}Collection{}
+	_ json.Unmarshaler = &_{{.Name}}Collection{}
+)
 
 func New{{.Name}}Collection() {{.Name}}Collection {
 	return &_{{.Name}}Collection{}

@@ -37,22 +37,22 @@ import (
 {{range .Types}}
 type {{.Name}}Collection interface {
 	Clear()
-	Index(rhs *{{.Name}}) (int, error)
-	Insert(i int, n *{{.Name}}) error
-	Append(n *{{.Name}})
+	Index(rhs {{.Ptr}}{{.Name}}) (int, error)
+	Insert(i int, n {{.Ptr}}{{.Name}}) error
+	Append(n {{.Ptr}}{{.Name}})
 	Remove(i int) error
 	Count() int
-	At(i int) (*{{.Name}}, error)
+	At(i int) ({{.Ptr}}{{.Name}}, error)
 	Iterator() {{.Name}}Iterator
 }
 
 type {{.Name}}Iterator interface {
 	HasNext() bool
-	Next() (*{{.Name}}, error)
+	Next() ({{.Ptr}}{{.Name}}, error)
 }
 
 type _{{.Name}}Collection struct {
-	s []*{{.Name}}
+	s []{{.Ptr}}{{.Name}}
 }
 
 // compile-time assurance that the struct matches the interface
@@ -78,7 +78,7 @@ func (v *_{{.Name}}Collection) UnmarshalJSON(data []byte) error {
 	return json.Unmarshal(data, &v.s)
 }
 
-func (v *_{{.Name}}Collection) Index(rhs *{{.Name}}) (int, error) {
+func (v *_{{.Name}}Collection) Index(rhs {{.Ptr}}{{.Name}}) (int, error) {
 	for i, lhs := range v.s {
 		if lhs == rhs {
 			return i, nil
@@ -87,7 +87,7 @@ func (v *_{{.Name}}Collection) Index(rhs *{{.Name}}) (int, error) {
 	return -1, fmt.Errorf("{{.Name}} not found in _{{.Name}}Collection")
 }
 
-func (v *_{{.Name}}Collection) Insert(i int, n *{{.Name}}) error {
+func (v *_{{.Name}}Collection) Insert(i int, n {{.Ptr}}{{.Name}}) error {
 	if i < 0 || i > len(v.s) {
 		return fmt.Errorf("_{{.Name}}Collection error trying to insert at invalid index %d\n", i)
 	}
@@ -97,7 +97,7 @@ func (v *_{{.Name}}Collection) Insert(i int, n *{{.Name}}) error {
 	return nil
 }
 
-func (v *_{{.Name}}Collection) Append(n *{{.Name}}) {
+func (v *_{{.Name}}Collection) Append(n {{.Ptr}}{{.Name}}) {
 	v.s = append(v.s, n)
 }
 
@@ -115,7 +115,7 @@ func (v *_{{.Name}}Collection) Count() int {
 	return len(v.s)
 }
 
-func (v *_{{.Name}}Collection) At(i int) (*{{.Name}}, error) {
+func (v *_{{.Name}}Collection) At(i int) ({{.Ptr}}{{.Name}}, error) {
 	if i < 0 || i >= len(v.s) {
 		return nil, fmt.Errorf("_{{.Name}}Collection invalid index %d\n", i)
 	}
@@ -128,7 +128,7 @@ func (v *_{{.Name}}Collection) Iterator() {{.Name}}Iterator {
 
 type _{{.Name}}Iterator struct {
 	next int
-	s		[]*{{.Name}}
+	s		[]{{.Ptr}}{{.Name}}
 }
 
 func New{{.Name}}Iterator(col *_{{.Name}}Collection) {{.Name}}Iterator {
@@ -139,7 +139,7 @@ func (it *_{{.Name}}Iterator) HasNext() bool {
 	return it.next < len(it.s)
 }
 
-func (it *_{{.Name}}Iterator) Next() (*{{.Name}}, error) {
+func (it *_{{.Name}}Iterator) Next() ({{.Ptr}}{{.Name}}, error) {
 	if it.HasNext() {
 		val := it.s[it.next]
 		it.next = it.next + 1
@@ -153,6 +153,21 @@ func (it *_{{.Name}}Iterator) Next() (*{{.Name}}, error) {
 
 type GeneratedType struct {
 	Name string
+	Type typeType
+	Ptr  string // used when type is interface
+}
+
+func NewGeneratedType(name string, tType typeType) GeneratedType {
+	ptr := "*"
+	if tType == typeInterface {
+		ptr = ""
+	}
+
+	return GeneratedType{
+		Name: name,
+		Type: tType,
+		Ptr:  ptr,
+	}
 }
 
 func getRenderedPath(inputPath string) (string, error) {

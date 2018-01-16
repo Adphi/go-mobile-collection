@@ -22,6 +22,13 @@ import (
 	"strings"
 )
 
+type typeType int
+
+const (
+	typeStruct typeType = iota
+	typeInterface
+)
+
 func loadFile(inputPath string) (string, []GeneratedType) {
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, inputPath, nil, parser.ParseComments)
@@ -34,18 +41,18 @@ func loadFile(inputPath string) (string, []GeneratedType) {
 		log.Fatalf("Could not determine package name of %s", inputPath)
 	}
 
-	collectionTypes := map[string]bool{}
+	collectionTypes := map[string]typeType{}
 	for _, decl := range f.Decls {
-		typeName, ok := identifyCollectionType(decl)
+		typeName, tType, ok := identifyCollectionType(decl)
 		if ok {
-			collectionTypes[typeName] = true
+			collectionTypes[typeName] = tType
 			continue
 		}
 	}
 
 	types := []GeneratedType{}
-	for typeName, _ := range collectionTypes {
-		collectionType := GeneratedType{typeName}
+	for typeName, tType := range collectionTypes {
+		collectionType := NewGeneratedType(typeName, tType)
 		types = append(types, collectionType)
 	}
 
@@ -59,7 +66,7 @@ func identifyPackage(f *ast.File) string {
 	return f.Name.Name
 }
 
-func identifyCollectionType(decl ast.Decl) (typeName string, match bool) {
+func identifyCollectionType(decl ast.Decl) (typeName string, tType typeType, match bool) {
 	genDecl, ok := decl.(*ast.GenDecl)
 	if !ok {
 		return
@@ -83,6 +90,11 @@ func identifyCollectionType(decl ast.Decl) (typeName string, match bool) {
 		if typeSpec, ok := spec.(*ast.TypeSpec); ok {
 			if typeSpec.Name != nil {
 				typeName = typeSpec.Name.Name
+				if _, ok := typeSpec.Type.(*ast.InterfaceType); ok {
+					tType = typeInterface
+				} else {
+					tType = typeStruct
+				}
 				break
 			}
 		}

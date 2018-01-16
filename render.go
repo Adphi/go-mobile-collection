@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"sort"
 	"strings"
 	"text/template"
 )
@@ -169,5 +170,6 @@ type generateTemplateData struct {
 }
 
 func render(w io.Writer, packageName string, types []GeneratedType) error {
+	sort.Slice(types, func(i, j int) bool { return types[i].Name < types[j].Name })
 	return generatedTemplate.Execute(w, generateTemplateData{packageName, types})
 }

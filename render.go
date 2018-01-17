@@ -21,6 +21,8 @@ import (
 	"sort"
 	"strings"
 	"text/template"
+
+	"github.com/pkg/errors"
 )
 
 var (
@@ -30,8 +32,8 @@ var (
 package {{.Package}}
 
 import (
-	"fmt"
 	"encoding/json"
+	"github.com/pkg/errors"
 )
 
 {{range .Types}}
@@ -84,12 +86,12 @@ func (v *_{{.Name}}Collection) Index(rhs {{.Ptr}}{{.Name}}) (int, error) {
 			return i, nil
 		}
 	}
-	return -1, fmt.Errorf("{{.Name}} not found in _{{.Name}}Collection")
+	return -1, errors.Errorf("{{.Name}} not found in _{{.Name}}Collection")
 }
 
 func (v *_{{.Name}}Collection) Insert(i int, n {{.Ptr}}{{.Name}}) error {
 	if i < 0 || i > len(v.s) {
-		return fmt.Errorf("_{{.Name}}Collection error trying to insert at invalid index %d\n", i)
+		return errors.Errorf("_{{.Name}}Collection error trying to insert at invalid index %d\n", i)
 	}
 	v.s = append(v.s, nil)
 	copy(v.s[i+1:], v.s[i:])
@@ -103,7 +105,7 @@ func (v *_{{.Name}}Collection) Append(n {{.Ptr}}{{.Name}}) {
 
 func (v *_{{.Name}}Collection) Remove(i int) error {
 	if i < 0 || i >= len(v.s) {
-		return fmt.Errorf("_{{.Name}}Collection error trying to remove invalid index %d\n", i)
+		return errors.Errorf("_{{.Name}}Collection error trying to remove invalid index %d\n", i)
 	}
 	copy(v.s[i:], v.s[i+1:])
 	v.s[len(v.s)-1] = nil
@@ -117,7 +119,7 @@ func (v *_{{.Name}}Collection) Count() int {
 
 func (v *_{{.Name}}Collection) At(i int) ({{.Ptr}}{{.Name}}, error) {
 	if i < 0 || i >= len(v.s) {
-		return nil, fmt.Errorf("_{{.Name}}Collection invalid index %d\n", i)
+		return nil, errors.Errorf("_{{.Name}}Collection invalid index %d\n", i)
 	}
 	return v.s[i], nil
 }
@@ -146,7 +148,7 @@ func (it *_{{.Name}}Iterator) Next() ({{.Ptr}}{{.Name}}, error) {
 		return val, nil
 	}
 
-	return nil, fmt.Errorf("_{{.Name}}Iterator has no more items")
+	return nil, errors.Errorf("_{{.Name}}Iterator has no more items")
 }
 {{end}}`))
 )
@@ -172,7 +174,7 @@ func NewGeneratedType(name string, tType typeType) GeneratedType {
 
 func getRenderedPath(inputPath string) (string, error) {
 	if !strings.HasSuffix(inputPath, ".go") {
-		return "", fmt.Errorf("Input path %s doesn't have .go extension", inputPath)
+		return "", errors.Errorf("Input path %s doesn't have .go extension", inputPath)
 	}
 	trimmed := strings.TrimSuffix(inputPath, ".go")
 	dir, file := filepath.Split(trimmed)

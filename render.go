@@ -137,6 +137,18 @@ type _{{.Name}}Iterator struct {
 	s		[]{{.Ptr}}{{.Name}}
 }
 
+func {{.Name}}CollectionToSlice(col {{.Name}}Collection) []{{.Ptr}}{{.Name}} {
+	result := make([]{{.Ptr}}{{.Name}}, col.Count())
+	for i := 0; i < col.Count(); i++ {
+		it, err := col.At(i)
+		if err != nil {
+			panic(err)
+		}
+		result = append(result, it)
+	}
+	return result
+}
+
 func New{{.Name}}Iterator(col *_{{.Name}}Collection) {{.Name}}Iterator {
 	return &_{{.Name}}Iterator{next: 0, s: col.s}
 }

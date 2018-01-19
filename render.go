@@ -68,6 +68,10 @@ func New{{.Name}}Collection() {{.Name}}Collection {
 	return &_{{.Name}}Collection{}
 }
 
+func New{{.Name}}CollectionFrom(ss ...{{.Ptr}}{{.Name}}) {{.Name}}Collection {
+	return &_{{.Name}}Collection{ss}
+}
+
 func (v *_{{.Name}}Collection) Clear() {
 	v.s = v.s[:0]
 }

@@ -149,6 +149,41 @@ func {{.Name}}CollectionToSlice(col {{.Name}}Collection) []{{.Ptr}}{{.Name}} {
 	return result
 }
 
+func ForEach{{.Name}}(col {{.Name}}Collection, f func({{.Ptr}}{{.Name}}) error) error {
+	if col == nil {
+		return nil
+	}
+
+	iter := col.Iterator()
+
+	for {
+		if it, err := iter.Next(); err != nil {
+			return nil
+		} else {
+			if err := f(it); err != nil {
+				return err
+			}
+		}
+	}
+}
+
+func MustForEach{{.Name}}(col {{.Name}}Collection, f func({{.Ptr}}{{.Name}})) {
+	if col == nil {
+		return
+	}
+
+	iter := col.Iterator()
+
+	for {
+		if it, err := iter.Next(); err != nil {
+			return
+		} else {
+			f(it)
+		}
+	}
+}
+
+
 func New{{.Name}}Iterator(col *_{{.Name}}Collection) {{.Name}}Iterator {
 	return &_{{.Name}}Iterator{next: 0, s: col.s}
 }

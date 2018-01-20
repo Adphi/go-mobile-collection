@@ -50,7 +50,7 @@ type {{.Name}}Collection interface {
 
 type {{.Name}}Iterator interface {
 	HasNext() bool
-	Next() ({{.Ptr}}{{.Name}}, error)
+	Next() ({{.Ptr}}{{.Name}}, bool)
 }
 
 type _{{.Name}}Collection struct {
@@ -157,12 +157,10 @@ func ForEach{{.Name}}(col {{.Name}}Collection, f func({{.Ptr}}{{.Name}}) error) 
 	iter := col.Iterator()
 
 	for {
-		if it, err := iter.Next(); err != nil {
+		if it, ok := iter.Next(); !ok {
 			return nil
-		} else {
-			if err := f(it); err != nil {
-				return err
-			}
+		} else if err := f(it); err != nil {
+			return err
 		}
 	}
 }
@@ -175,7 +173,7 @@ func MustForEach{{.Name}}(col {{.Name}}Collection, f func({{.Ptr}}{{.Name}})) {
 	iter := col.Iterator()
 
 	for {
-		if it, err := iter.Next(); err != nil {
+		if it, ok := iter.Next(); !ok {
 			return
 		} else {
 			f(it)
@@ -192,14 +190,14 @@ func (it *_{{.Name}}Iterator) HasNext() bool {
 	return it.next < len(it.s)
 }
 
-func (it *_{{.Name}}Iterator) Next() ({{.Ptr}}{{.Name}}, error) {
+func (it *_{{.Name}}Iterator) Next() ({{.Ptr}}{{.Name}}, bool) {
 	if it.HasNext() {
 		val := it.s[it.next]
 		it.next = it.next + 1
-		return val, nil
+		return val, true
 	}
 
-	return nil, errors.Errorf("_{{.Name}}Iterator has no more items")
+	return nil, false
 }
 {{end}}`))
 )

@@ -45,6 +45,7 @@ type {{.Name}}Collection interface {
 	Remove(i int) error
 	Count() int
 	At(i int) ({{.Ptr}}{{.Name}}, error)
+	MustAt(i int) {{.Ptr}}{{.Name}}
 	Iterator() {{.Name}}Iterator
 }
 
@@ -126,6 +127,14 @@ func (v *_{{.Name}}Collection) At(i int) ({{.Ptr}}{{.Name}}, error) {
 		return nil, errors.Errorf("_{{.Name}}Collection invalid index %d\n", i)
 	}
 	return v.s[i], nil
+}
+
+func (v *_{{.Name}}Collection) MustAt(i int) {{.Ptr}}{{.Name}} {
+	if x, err := v.At(i); err != nil {
+		panic(err)
+	} else {
+		return x
+	}
 }
 
 func (v *_{{.Name}}Collection) Iterator() {{.Name}}Iterator {

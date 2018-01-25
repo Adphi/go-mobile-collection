@@ -164,16 +164,13 @@ func ForEach{{.Name}}(col {{.Name}}Collection, f func({{.Ptr}}{{.Name}}) error) 
 	}
 
 	iter := col.Iterator()
-
-	for {
-		if it, err := iter.Next(); err != nil {
-			return nil
-		} else {
-			if err := f(it); err != nil {
-				return err
-			}
+	for it, err := iter.Next(); err == nil; it, err = iter.Next() {
+		if err := f(it); err != nil {
+			return err
 		}
 	}
+
+	return nil
 }
 
 func MustForEach{{.Name}}(col {{.Name}}Collection, f func({{.Ptr}}{{.Name}})) {
@@ -182,13 +179,8 @@ func MustForEach{{.Name}}(col {{.Name}}Collection, f func({{.Ptr}}{{.Name}})) {
 	}
 
 	iter := col.Iterator()
-
-	for {
-		if it, err := iter.Next(); err != nil {
-			return
-		} else {
-			f(it)
-		}
+	for it, err := iter.Next(); err == nil; it, err = iter.Next() {
+		f(it)
 	}
 }
 

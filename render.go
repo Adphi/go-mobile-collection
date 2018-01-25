@@ -146,45 +146,6 @@ type _{{.Name}}Iterator struct {
 	s		[]{{.Ptr}}{{.Name}}
 }
 
-func {{.Name}}CollectionToSlice(col {{.Name}}Collection) []{{.Ptr}}{{.Name}} {
-	result := make([]{{.Ptr}}{{.Name}}, col.Count())
-	for i := 0; i < col.Count(); i++ {
-		it, err := col.At(i)
-		if err != nil {
-			panic(err)
-		}
-		result = append(result, it)
-	}
-	return result
-}
-
-func ForEach{{.Name}}(col {{.Name}}Collection, f func({{.Ptr}}{{.Name}}) error) error {
-	if col == nil {
-		return nil
-	}
-
-	iter := col.Iterator()
-	for it, err := iter.Next(); err == nil; it, err = iter.Next() {
-		if err := f(it); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func MustForEach{{.Name}}(col {{.Name}}Collection, f func({{.Ptr}}{{.Name}})) {
-	if col == nil {
-		return
-	}
-
-	iter := col.Iterator()
-	for it, err := iter.Next(); err == nil; it, err = iter.Next() {
-		f(it)
-	}
-}
-
-
 func New{{.Name}}Iterator(col *_{{.Name}}Collection) {{.Name}}Iterator {
 	return &_{{.Name}}Iterator{next: 0, s: col.s}
 }

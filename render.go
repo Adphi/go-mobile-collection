@@ -81,6 +81,24 @@ func (v *_{{.Name}}Collection) MarshalJSON() ([]byte, error) {
 	return json.Marshal(v.s)
 }
 
+func {{.Name}}Collection_MarshalJSONWith(this {{.Name}}Collection, marshal func({{.Ptr}}{{.Name}}) ([]byte, error)) ([]byte, error) {
+	col := make([]custom{{.Name}}Marshaler, 0, this.Count())
+	next := this.Iterator().Next
+	for x, err := next(); err == nil; x, err = next() {
+		col = append(col, custom{{.Name}}Marshaler{x, marshal})
+	}
+	return json.Marshal(col)
+}
+
+type custom{{.Name}}Marshaler struct {
+	v       {{.Ptr}}{{.Name}}
+	marshal func({{.Ptr}}{{.Name}}) ([]byte, error)
+}
+
+func (v custom{{.Name}}Marshaler) MarshalJSON() ([]byte, error) {
+	return v.marshal(v.v)
+}
+
 func (v *_{{.Name}}Collection) UnmarshalJSON(data []byte) error {
 	return json.Unmarshal(data, &v.s)
 }

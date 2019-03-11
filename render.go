@@ -44,8 +44,8 @@ type {{.Name}}Collection interface {
 	Append(n {{.Ptr}}{{.Name}})
 	Remove(i int) error
 	Count() int
-	At(i int) ({{.Ptr}}{{.Name}}, error)
-	MustAt(i int) {{.Ptr}}{{.Name}}
+	Get(i int) ({{.Ptr}}{{.Name}}, error)
+	MustGet(i int) {{.Ptr}}{{.Name}}
 	Iterator() {{.Name}}Iterator
 }
 
@@ -54,9 +54,7 @@ type {{.Name}}Iterator interface {
 	Next() ({{.Ptr}}{{.Name}}, error)
 }
 
-type _{{.Name}}Collection struct {
-	s []{{.Ptr}}{{.Name}}
-}
+type _{{.Name}}Collection []{{.Ptr}}{{.Name}}
 
 // compile-time assurance that the struct matches the interface
 var (
@@ -66,19 +64,26 @@ var (
 )
 
 func New{{.Name}}Collection() {{.Name}}Collection {
-	return &_{{.Name}}Collection{}
+	var ss []{{.Ptr}}{{.Name}}
+	c := _{{.Name}}Collection(ss)
+	return &c
 }
 
 func New{{.Name}}CollectionFrom(ss ...{{.Ptr}}{{.Name}}) {{.Name}}Collection {
-	return &_{{.Name}}Collection{ss}
+	if ss == nil {
+		ss = []{{.Ptr}}{{.Name}}{}
+	}
+	c := _{{.Name}}Collection(ss)
+	return &c
 }
 
 func (v *_{{.Name}}Collection) Clear() {
-	v.s = v.s[:0]
+	s := *v
+	*v = s[:0]
 }
 
 func (v *_{{.Name}}Collection) MarshalJSON() ([]byte, error) {
-	return json.Marshal(v.s)
+	return json.Marshal(v)
 }
 
 func {{.Name}}Collection_MarshalJSONWith(this {{.Name}}Collection, marshal func({{.Ptr}}{{.Name}}) ([]byte, error)) ([]byte, error) {
@@ -100,11 +105,11 @@ func (v custom{{.Name}}Marshaler) MarshalJSON() ([]byte, error) {
 }
 
 func (v *_{{.Name}}Collection) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &v.s)
+	return json.Unmarshal(data, &v)
 }
 
 func (v *_{{.Name}}Collection) Index(rhs {{.Ptr}}{{.Name}}) (int, error) {
-	for i, lhs := range v.s {
+	for i, lhs := range *v {
 		if lhs == rhs {
 			return i, nil
 		}
@@ -113,42 +118,47 @@ func (v *_{{.Name}}Collection) Index(rhs {{.Ptr}}{{.Name}}) (int, error) {
 }
 
 func (v *_{{.Name}}Collection) Insert(i int, n {{.Ptr}}{{.Name}}) error {
-	if i < 0 || i > len(v.s) {
+	if i < 0 || i > len(*v) {
 		return errors.Errorf("_{{.Name}}Collection error trying to insert at invalid index %d\n", i)
 	}
-	v.s = append(v.s, nil)
-	copy(v.s[i+1:], v.s[i:])
-	v.s[i] = n
+	s := *v
+	s = append(s, nil)
+	copy(s[i+1:], s[i:])
+	s[i] = n
+	*v = s
 	return nil
 }
 
 func (v *_{{.Name}}Collection) Append(n {{.Ptr}}{{.Name}}) {
-	v.s = append(v.s, n)
+	*v = append(*v, n)
 }
 
 func (v *_{{.Name}}Collection) Remove(i int) error {
-	if i < 0 || i >= len(v.s) {
+	if i < 0 || i >= len(*v) {
 		return errors.Errorf("_{{.Name}}Collection error trying to remove invalid index %d\n", i)
 	}
-	copy(v.s[i:], v.s[i+1:])
-	v.s[len(v.s)-1] = nil
-	v.s = v.s[:len(v.s)-1]
+	s := *v
+	copy(s[i:], s[i+1:])
+	s[len(s)-1] = nil
+	s = s[:len(s)-1]
+	*v = s
 	return nil
 }
 
 func (v *_{{.Name}}Collection) Count() int {
-	return len(v.s)
+	return len(*v)
 }
 
-func (v *_{{.Name}}Collection) At(i int) ({{.Ptr}}{{.Name}}, error) {
-	if i < 0 || i >= len(v.s) {
+func (v *_{{.Name}}Collection) Get(i int) ({{.Ptr}}{{.Name}}, error) {
+	if i < 0 || i >= len(*v) {
 		return nil, errors.Errorf("_{{.Name}}Collection invalid index %d\n", i)
 	}
-	return v.s[i], nil
+	s := *v
+	return s[i], nil
 }
 
-func (v *_{{.Name}}Collection) MustAt(i int) {{.Ptr}}{{.Name}} {
-	if x, err := v.At(i); err != nil {
+func (v *_{{.Name}}Collection) MustGet(i int) {{.Ptr}}{{.Name}} {
+	if x, err := v.Get(i); err != nil {
 		panic(err)
 	} else {
 		return x
@@ -165,7 +175,7 @@ type _{{.Name}}Iterator struct {
 }
 
 func New{{.Name}}Iterator(col *_{{.Name}}Collection) {{.Name}}Iterator {
-	return &_{{.Name}}Iterator{next: 0, s: col.s}
+	return &_{{.Name}}Iterator{next: 0, s: *col}
 }
 
 func (it *_{{.Name}}Iterator) HasNext() bool {

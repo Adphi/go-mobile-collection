@@ -50,7 +50,7 @@ func loadFile(inputPath string) (string, []GeneratedType) {
 		}
 	}
 
-	types := []GeneratedType{}
+	var types []GeneratedType
 	for typeName, tType := range collectionTypes {
 		collectionType := NewGeneratedType(typeName, tType)
 		types = append(types, collectionType)

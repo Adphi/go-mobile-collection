@@ -15,14 +15,9 @@
 package main
 
 import (
-	"fmt"
 	"io"
-	"path/filepath"
 	"sort"
-	"strings"
 	"text/template"
-
-	"github.com/pkg/errors"
 )
 
 var (
@@ -211,15 +206,6 @@ func NewGeneratedType(name string, tType typeType) GeneratedType {
 		Type: tType,
 		Ptr:  ptr,
 	}
-}
-
-func getRenderedPath(inputPath string) (string, error) {
-	if !strings.HasSuffix(inputPath, ".go") {
-		return "", errors.Errorf("Input path %s doesn't have .go extension", inputPath)
-	}
-	trimmed := strings.TrimSuffix(inputPath, ".go")
-	dir, file := filepath.Split(trimmed)
-	return filepath.Join(dir, fmt.Sprintf("%s_collection.go", file)), nil
 }
 
 type generateTemplateData struct {

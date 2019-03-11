@@ -15,40 +15,92 @@
 package main
 
 import (
-	"log"
+	"fmt"
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+	"io/ioutil"
 	"os"
+	"path/filepath"
+	"strings"
 )
 
-func processFile(inputPath string) {
-	packageName, types := loadFile(inputPath)
-
-	outputPath, err := getRenderedPath(inputPath)
-	if err != nil {
-		log.Fatalf("Could not get output path: %s", err)
-	}
-
-	if _, err := os.Stat(outputPath); err == nil {
-		if err := os.Remove(outputPath); err != nil {
-			log.Fatalf("Could not remote output file %s", outputPath)
+func process(inputPath []string) error {
+	types := map[string][]GeneratedType{}
+	packagePaths := map[string]string{}
+	for _, p := range inputPath {
+		packageName, ts := loadFile(p)
+		packagePaths[packageName] = filepath.Dir(p)
+		if pt, ok := types[packageName]; ok {
+			types[packageName] = append(pt, ts...)
+			continue
 		}
+		types[packageName] = ts
 	}
 
-	output, err := os.Create(outputPath)
-	if err != nil {
-		log.Fatalf("Could not open output file: %s", err)
-	}
-	defer output.Close()
+	for p, t := range types {
+		if t == nil {
+			continue
+		}
+		outputPath := fmt.Sprintf("%s/%s_collection.go", packagePaths[p], p)
 
-	if err := render(output, packageName, types); err != nil {
-		log.Fatalf("Could not generate go code: %s", err)
+		if _, err := os.Stat(outputPath); err == nil {
+			if err := os.Remove(outputPath); err != nil {
+				return fmt.Errorf("Could not remote output file %s", outputPath)
+			}
+		}
+
+		output, err := os.Create(outputPath)
+		if err != nil {
+			return fmt.Errorf("Could not open output file: %s", err)
+		}
+
+		if err := render(output, p, t); err != nil {
+			output.Close()
+			return fmt.Errorf("Could not generate go code: %s", err)
+		}
+		output.Close()
 	}
+	return nil
 }
 
 func main() {
-	log.SetFlags(0)
-	log.SetPrefix("collection-wrapper: ")
+	cmd := &cobra.Command{
+		Use: "go-mobile-collection file...",
+		Args: cobra.MinimumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			var files []string
+			for _, path := range args {
+				// Ignore vendor
+				if path == "vendor" {
+					continue
+				}
+				// Check files
+				p, err := os.Stat(path)
+				if err != nil {
+					log.Fatalf("Invalid file or directory: %s", path)
+				}
+				if !p.IsDir() {
+					if !strings.HasSuffix(path, ".go") {
+						return fmt.Errorf("Invalid file: %s", path)
+					}
+					files = append(files, path)
+					continue
+				}
+				path = strings.TrimSuffix(path, "/")
+				fs, err := ioutil.ReadDir(path)
+				if err != nil {
+					return err
+				}
+				for _, f := range fs {
+					if strings.HasSuffix(f.Name(), ".go") {
+						files = append(files, fmt.Sprintf("%s/%s",path, f.Name()))
+					}
+				}
 
-	for _, path := range os.Args[1:] {
-		processFile(path)
+			}
+			return process(files)
+		},
 	}
+	cmd.Execute()
+
 }

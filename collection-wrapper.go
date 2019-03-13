@@ -65,7 +65,7 @@ func process(inputPath []string) error {
 
 func main() {
 	cmd := &cobra.Command{
-		Use: "go-mobile-collection file...",
+		Use:  "go-mobile-collection file...",
 		Args: cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var files []string
@@ -93,7 +93,7 @@ func main() {
 				}
 				for _, f := range fs {
 					if strings.HasSuffix(f.Name(), ".go") {
-						files = append(files, fmt.Sprintf("%s/%s",path, f.Name()))
+						files = append(files, fmt.Sprintf("%s/%s", path, f.Name()))
 					}
 				}
 

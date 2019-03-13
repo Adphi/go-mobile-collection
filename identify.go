@@ -42,18 +42,15 @@ func loadFile(inputPath string) (string, []GeneratedType) {
 	}
 
 	collectionTypes := map[string]typeType{}
+	var types []GeneratedType
 	for _, decl := range f.Decls {
-		typeName, tType, ok := identifyCollectionType(decl)
+		typeName, tType, ok, typeNamed := identifyCollectionType(decl)
 		if ok {
 			collectionTypes[typeName] = tType
+			collectionType := NewGeneratedType(typeName, tType, typeNamed)
+			types = append(types, collectionType)
 			continue
 		}
-	}
-
-	var types []GeneratedType
-	for typeName, tType := range collectionTypes {
-		collectionType := NewGeneratedType(typeName, tType)
-		types = append(types, collectionType)
 	}
 
 	return packageName, types
@@ -66,7 +63,7 @@ func identifyPackage(f *ast.File) string {
 	return f.Name.Name
 }
 
-func identifyCollectionType(decl ast.Decl) (typeName string, tType typeType, match bool) {
+func identifyCollectionType(decl ast.Decl) (typeName string, tType typeType, match bool, typeNamed bool) {
 	genDecl, ok := decl.(*ast.GenDecl)
 	if !ok {
 		return
@@ -78,6 +75,9 @@ func identifyCollectionType(decl ast.Decl) (typeName string, tType typeType, mat
 	found := false
 	for _, comment := range genDecl.Doc.List {
 		if strings.Contains(comment.Text, "@collection-wrapper") {
+			if strings.Contains(comment.Text, "typenamed") {
+				typeNamed = true
+			}
 			found = true
 			break
 		}

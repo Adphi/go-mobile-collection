@@ -4,7 +4,7 @@ import "text/template"
 
 var (
 	_ = template.Must(Generator.New("embed").Parse(`{{ define "embed" }}
-{{- /*gotype: github.com/Adphi/go-mobile-collection.GeneratedType*/ -}}
+{{- /*gotype: github.com/partitio/go-mobile-collection.GeneratedType*/ -}}
 type {{.Name}}Collection interface {
 	Clear()
 	Index(rhs {{.Ptr}}{{.Name}}) (int, error)

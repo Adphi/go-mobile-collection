@@ -15,7 +15,7 @@
 package main
 
 import (
-	"github.com/Adphi/go-mobile-collection/templates"
+	"github.com/partitio/go-mobile-collection/templates"
 	"io"
 	"sort"
 )

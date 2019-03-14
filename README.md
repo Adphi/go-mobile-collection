@@ -18,3 +18,16 @@ type Example struct {
 ```
 - When you build your project a new file should now be generated called ($GOFILE)_collection.go that contains the automatically generated definitions.
 
+## Natives Collection
+The repository contains utility Collections inside the [natives folder](./natives) for natively supported types :
+- string
+- int
+- int32
+- int64
+- float32
+- float64
+
+In order to link against these collections, add the package to the gomobile bind command
+```bash
+gomobile bind -target=android github.com/partitio/go-mobile-collection/natives .
+```

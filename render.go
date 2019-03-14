@@ -18,25 +18,41 @@ import (
 	"github.com/partitio/go-mobile-collection/templates"
 	"io"
 	"sort"
+	"strings"
 )
 
 type GeneratedType struct {
 	Name      string
 	Type      typeType
 	Ptr       string // used when type is interface
+	DefaultValue string
 	TypeNamed bool
 }
+
+
+var nativesTypes = []string{"int", "int32", "int64", "float32", "float64", "string"}
 
 func NewGeneratedType(name string, tType typeType, typeNamed bool) GeneratedType {
 	ptr := "*"
 	if tType == typeInterface {
 		ptr = ""
 	}
+	var defaultValue string
+
+	switch strings.ToLower(name) {
+	case "int", "int32", "int64", "float32", "float64":
+		defaultValue = "0"
+	case "string":
+		defaultValue = "\"\""
+	default:
+		defaultValue = "nil"
+	}
 
 	return GeneratedType{
 		Name:      name,
 		Type:      tType,
 		Ptr:       ptr,
+		DefaultValue: defaultValue,
 		TypeNamed: typeNamed,
 	}
 }

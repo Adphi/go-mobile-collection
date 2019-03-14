@@ -43,17 +43,10 @@ func process(inputPath []string) error {
 		}
 		outputPath := fmt.Sprintf("%s/%s_collection.go", packagePaths[p], p)
 
-		if _, err := os.Stat(outputPath); err == nil {
-			if err := os.Remove(outputPath); err != nil {
-				return fmt.Errorf("Could not remote output file %s", outputPath)
-			}
-		}
-
-		output, err := os.Create(outputPath)
+		output, err := CreateOrReplace(outputPath)
 		if err != nil {
-			return fmt.Errorf("Could not open output file: %s", err)
+			return err
 		}
-
 		if err := render(output, p, t); err != nil {
 			output.Close()
 			return fmt.Errorf("Could not generate go code: %s", err)
@@ -61,6 +54,19 @@ func process(inputPath []string) error {
 		output.Close()
 	}
 	return nil
+}
+
+func CreateOrReplace(outputPath string) (*os.File, error) {
+	if _, err := os.Stat(outputPath); err == nil {
+		if err := os.Remove(outputPath); err != nil {
+			return nil, fmt.Errorf("Could not remote output file %s", outputPath)
+		}
+	}
+	output, err := os.Create(outputPath)
+	if err != nil {
+		return nil, fmt.Errorf("Could not open output file: %s", err)
+	}
+	return output, nil
 }
 
 func main() {
@@ -98,9 +104,30 @@ func main() {
 				}
 
 			}
-			return process(files)
+			if err := process(files); err != nil {
+				return err
+			}
+
+			natives, err := cmd.Flags().GetString("natives")
+			if err != nil {
+				return err
+			}
+			if natives == "" {
+				return nil
+			}
+			var gts []GeneratedType
+			for _, n := range nativesTypes {
+				gts = append(gts, NewGeneratedType(n, typeInterface, false))
+			}
+			out, err := CreateOrReplace("native_collection.go")
+			if err != nil {
+				return err
+			}
+			defer out.Close()
+			return render(out, natives, gts)
 		},
 	}
+	cmd.Flags().StringP("natives", "n", "", "Generate collection for native types (string, ints, floats) inside given package")
 	cmd.Execute()
 
 }

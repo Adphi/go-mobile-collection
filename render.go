@@ -27,20 +27,9 @@ type GeneratedType struct {
 	TypeNamed bool
 }
 
-var nativesTypes = []string{"Str", "Int", "Int32", "Int64", "Float32", "Float64"}
-
-func isNativeType(name string) bool {
-	for _, n := range nativesTypes {
-		if n == name {
-			return true
-		}
-	}
-	return false
-}
-
 func NewGeneratedType(name string, tType typeType, typeNamed bool) GeneratedType {
 	ptr := "*"
-	if tType == typeInterface { //|| isNativeType(name){
+	if tType == typeInterface {
 		ptr = ""
 	}
 

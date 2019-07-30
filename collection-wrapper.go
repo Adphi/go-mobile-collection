@@ -16,16 +16,19 @@ package main
 
 import (
 	"fmt"
-	log "github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
+
+	"github.com/partitio/go-mobile-collection/generator"
 )
 
 func process(inputPath []string) error {
-	types := map[string][]GeneratedType{}
+	types := map[string][]generator.GeneratedType{}
 	packagePaths := map[string]string{}
 	for _, p := range inputPath {
 		packageName, ts := loadFile(p)
@@ -47,7 +50,7 @@ func process(inputPath []string) error {
 		if err != nil {
 			return err
 		}
-		if err := render(output, p, t); err != nil {
+		if err := generator.Render(output, p, t); err != nil {
 			output.Close()
 			return fmt.Errorf("Could not generate go code: %s", err)
 		}
@@ -115,16 +118,16 @@ func main() {
 			if natives == "" {
 				return nil
 			}
-			var gts []GeneratedType
-			for _, n := range nativesTypes {
-				gts = append(gts, NewGeneratedType(n, typeInterface, false))
+			var gts []generator.GeneratedType
+			for _, n := range generator.NativesTypes {
+				gts = append(gts, generator.NewGeneratedType(n, generator.TypeInterface, false))
 			}
 			out, err := CreateOrReplace("native_collection.go")
 			if err != nil {
 				return err
 			}
 			defer out.Close()
-			return render(out, natives, gts)
+			return generator.Render(out, natives, gts)
 		},
 	}
 	cmd.Flags().StringP("natives", "n", "", "Generate collection for native types (string, ints, floats) inside given package")

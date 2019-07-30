@@ -12,29 +12,37 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package generator
 
 import (
-	"github.com/partitio/go-mobile-collection/templates"
 	"io"
 	"sort"
 	"strings"
+
+	"github.com/partitio/go-mobile-collection/templates"
+)
+
+type Type int
+
+const (
+	TypeStruct Type = iota
+	TypeInterface
 )
 
 type GeneratedType struct {
-	Name      string
-	Type      typeType
-	Ptr       string // used when type is interface
+	Name         string
+	Type         Type
+	Ptr          string // used when type is interface
 	DefaultValue string
-	TypeNamed bool
+	TypeNamed    bool
 }
 
 
-var nativesTypes = []string{"int", "int32", "int64", "float32", "float64", "string"}
+var NativesTypes = []string{"int", "int32", "int64", "float32", "float64", "string"}
 
-func NewGeneratedType(name string, tType typeType, typeNamed bool) GeneratedType {
+func NewGeneratedType(name string, tType Type, typeNamed bool) GeneratedType {
 	ptr := "*"
-	if tType == typeInterface {
+	if tType == TypeInterface {
 		ptr = ""
 	}
 	var defaultValue string
@@ -62,7 +70,7 @@ type GenerateTemplateData struct {
 	Types   []GeneratedType
 }
 
-func render(w io.Writer, packageName string, types []GeneratedType) error {
+func Render(w io.Writer, packageName string, types []GeneratedType) error {
 	sort.Slice(types, func(i, j int) bool { return types[i].Name < types[j].Name })
 	return templates.Generator.Execute(w, GenerateTemplateData{packageName, types})
 }

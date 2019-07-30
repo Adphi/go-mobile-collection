@@ -20,16 +20,11 @@ import (
 	"go/token"
 	"log"
 	"strings"
+
+	"github.com/partitio/go-mobile-collection/generator"
 )
 
-type typeType int
-
-const (
-	typeStruct typeType = iota
-	typeInterface
-)
-
-func loadFile(inputPath string) (string, []GeneratedType) {
+func loadFile(inputPath string) (string, []generator.GeneratedType) {
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, inputPath, nil, parser.ParseComments)
 	if err != nil {
@@ -41,13 +36,13 @@ func loadFile(inputPath string) (string, []GeneratedType) {
 		log.Fatalf("Could not determine package name of %s", inputPath)
 	}
 
-	collectionTypes := map[string]typeType{}
-	var types []GeneratedType
+	collectionTypes := map[string]generator.Type{}
+	var types []generator.GeneratedType
 	for _, decl := range f.Decls {
 		typeName, tType, ok, typeNamed := identifyCollectionType(decl)
 		if ok {
 			collectionTypes[typeName] = tType
-			collectionType := NewGeneratedType(typeName, tType, typeNamed)
+			collectionType := generator.NewGeneratedType(typeName, tType, typeNamed)
 			types = append(types, collectionType)
 			continue
 		}
@@ -63,7 +58,7 @@ func identifyPackage(f *ast.File) string {
 	return f.Name.Name
 }
 
-func identifyCollectionType(decl ast.Decl) (typeName string, tType typeType, match bool, typeNamed bool) {
+func identifyCollectionType(decl ast.Decl) (typeName string, tType generator.Type, match bool, typeNamed bool) {
 	genDecl, ok := decl.(*ast.GenDecl)
 	if !ok {
 		return
@@ -91,9 +86,9 @@ func identifyCollectionType(decl ast.Decl) (typeName string, tType typeType, mat
 			if typeSpec.Name != nil {
 				typeName = typeSpec.Name.Name
 				if _, ok := typeSpec.Type.(*ast.InterfaceType); ok {
-					tType = typeInterface
+					tType = generator.TypeInterface
 				} else {
-					tType = typeStruct
+					tType = generator.TypeStruct
 				}
 				break
 			}

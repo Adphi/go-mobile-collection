@@ -20,12 +20,20 @@ type Example struct {
 
 ## Natives Collection
 The repository contains utility Collections inside the [natives folder](./natives) for natively supported types :
-- string
+- bool
 - int
+- int8
+- int16
 - int32
 - int64
+- uint
+- uint8
+- uint16
+- uint32
+- uint64
 - float32
 - float64
+- string
 
 In order to link against these collections, add the package to the gomobile bind command
 ```bash

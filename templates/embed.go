@@ -3,8 +3,7 @@ package templates
 import "text/template"
 
 var (
-	_ = template.Must(Generator.New("embed").Parse(`{{ define "embed" }}
-type {{.Name | Title}}Collection interface {
+	_ = template.Must(Generator.New("embed").Parse(`{{ define "embed" }}type {{.Name | Title}}Collection interface {
 	Clear()
 	Index(rhs {{.Ptr}}{{.Name}}) (int, error)
 	Insert(i int, n {{.Ptr}}{{.Name}}) error

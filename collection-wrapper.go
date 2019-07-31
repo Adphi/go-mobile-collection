@@ -50,7 +50,7 @@ func process(inputPath []string) error {
 		if err != nil {
 			return err
 		}
-		if err := generator.Render(output, p, t); err != nil {
+		if err := generator.Render(output, p, t, true); err != nil {
 			output.Close()
 			return fmt.Errorf("Could not generate go code: %s", err)
 		}
@@ -122,15 +122,17 @@ func main() {
 			for _, n := range generator.NativesTypes {
 				gts = append(gts, generator.NewGeneratedType(n, generator.TypeInterface, false))
 			}
-			out, err := CreateOrReplace("native_collection.go")
+			f := filepath.Join(args[0], "native_collection.go")
+			out, err := CreateOrReplace(f)
 			if err != nil {
 				return err
 			}
 			defer out.Close()
-			return generator.Render(out, natives, gts)
+			return generator.Render(out, natives, gts, true)
 		},
 	}
 	cmd.Flags().StringP("natives", "n", "", "Generate collection for native types (string, ints, floats) inside given package")
+	cmd.Flags().BoolP("includes", "i", true, "generate package name and includes")
 	cmd.Execute()
 
 }

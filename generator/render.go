@@ -37,8 +37,22 @@ type GeneratedType struct {
 	TypeNamed    bool
 }
 
-
-var NativesTypes = []string{"int", "int32", "int64", "float32", "float64", "string"}
+var NativesTypes = []string{
+	"bool",
+	"int",
+	"int8",
+	"int16",
+	"int32",
+	"int64",
+	"uint",
+	"uint8",
+	"uint16",
+	"uint32",
+	"uint64",
+	"float32",
+	"float64",
+	"string",
+}
 
 func NewGeneratedType(name string, tType Type, typeNamed bool) GeneratedType {
 	ptr := "*"
@@ -48,29 +62,43 @@ func NewGeneratedType(name string, tType Type, typeNamed bool) GeneratedType {
 	var defaultValue string
 
 	switch strings.ToLower(name) {
-	case "int", "int32", "int64", "float32", "float64":
+	case "int",
+		"int8",
+		"int16",
+		"int32",
+		"int64",
+		"uint",
+		"uint8",
+		"uint16",
+		"uint32",
+		"uint64",
+		"float32",
+		"float64":
 		defaultValue = "0"
 	case "string":
 		defaultValue = "\"\""
+	case "bool":
+		defaultValue = "false"
 	default:
 		defaultValue = "nil"
 	}
 
 	return GeneratedType{
-		Name:      name,
-		Type:      tType,
-		Ptr:       ptr,
+		Name:         name,
+		Type:         tType,
+		Ptr:          ptr,
 		DefaultValue: defaultValue,
-		TypeNamed: typeNamed,
+		TypeNamed:    typeNamed,
 	}
 }
 
 type GenerateTemplateData struct {
 	Package string
+	Header  bool
 	Types   []GeneratedType
 }
 
-func Render(w io.Writer, packageName string, types []GeneratedType) error {
+func Render(w io.Writer, packageName string, types []GeneratedType, includeHeader bool) error {
 	sort.Slice(types, func(i, j int) bool { return types[i].Name < types[j].Name })
-	return templates.Generator.Execute(w, GenerateTemplateData{packageName, types})
+	return templates.Generator.Execute(w, GenerateTemplateData{Package: packageName, Header: includeHeader, Types: types})
 }

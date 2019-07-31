@@ -5,8 +5,163 @@ package natives
 
 import (
 	"encoding/json"
+
 	"github.com/pkg/errors"
 )
+
+
+type BoolCollection interface {
+	Clear()
+	Index(rhs bool) (int, error)
+	Insert(i int, n bool) error
+	Append(n bool)
+	Remove(i int) error
+	Count() int
+	Get(i int) (bool, error)
+	Set(i int, n bool) error
+	MustGet(i int) bool
+	Iterator() BoolIterator
+}
+
+type BoolIterator interface {
+	HasNext() bool
+	Next() (bool, error)
+}
+
+type _BoolCollection struct {
+	s []bool
+}
+
+// compile-time assurance that the struct matches the interface
+var (
+	_ BoolCollection = &_BoolCollection{}
+	_ json.Marshaler = &_BoolCollection{}
+	_ json.Unmarshaler = &_BoolCollection{}
+)
+
+func NewBoolCollection() BoolCollection {
+	return &_BoolCollection{}
+}
+
+func NewBoolCollectionFrom(ss ...bool) BoolCollection {
+	return &_BoolCollection{ss}
+}
+
+func (v *_BoolCollection) Clear() {
+	v.s = v.s[:0]
+}
+
+func (v *_BoolCollection) MarshalJSON() ([]byte, error) {
+	return json.Marshal(v.s)
+}
+
+func BoolCollection_MarshalJSONWith(this BoolCollection, marshal func(bool) ([]byte, error)) ([]byte, error) {
+	col := make([]customboolMarshaler, 0, this.Count())
+	next := this.Iterator().Next
+	for x, err := next(); err == nil; x, err = next() {
+		col = append(col, customboolMarshaler{x, marshal})
+	}
+	return json.Marshal(col)
+}
+
+type customboolMarshaler struct {
+	v       bool
+	marshal func(bool) ([]byte, error)
+}
+
+func (v customboolMarshaler) MarshalJSON() ([]byte, error) {
+	return v.marshal(v.v)
+}
+
+func (v *_BoolCollection) UnmarshalJSON(data []byte) error {
+	return json.Unmarshal(data, &v.s)
+}
+
+func (v *_BoolCollection) Index(rhs bool) (int, error) {
+	for i, lhs := range v.s {
+		if lhs == rhs {
+			return i, nil
+		}
+	}
+	return -1, errors.Errorf("bool not found in _BoolCollection")
+}
+
+func (v *_BoolCollection) Insert(i int, n bool) error {
+	if i < 0 || i > len(v.s) {
+		return errors.Errorf("_BoolCollection error trying to insert at invalid index %d\n", i)
+	}
+	v.s = append(v.s, false)
+	copy(v.s[i+1:], v.s[i:])
+	v.s[i] = n
+	return nil
+}
+
+func (v *_BoolCollection) Append(n bool) {
+	v.s = append(v.s, n)
+}
+
+func (v *_BoolCollection) Remove(i int) error {
+	if i < 0 || i >= len(v.s) {
+		return errors.Errorf("_BoolCollection error trying to remove invalid index %d\n", i)
+	}
+	copy(v.s[i:], v.s[i+1:])
+	v.s[len(v.s)-1] = false
+	v.s = v.s[:len(v.s)-1]
+	return nil
+}
+
+func (v *_BoolCollection) Count() int {
+	return len(v.s)
+}
+
+func (v *_BoolCollection) Get(i int) (bool, error) {
+	if i < 0 || i >= len(v.s) {
+		return false, errors.Errorf("_BoolCollection invalid index %d\n", i)
+	}
+	return v.s[i], nil
+}
+
+func (v *_BoolCollection) Set(i int, n bool) error {
+	if i < 0 || i > len(v.s) {
+		return errors.Errorf("_BoolCollection error trying to insert at invalid index %d\n", i)
+	}
+	v.s[i] = n
+	return nil
+}
+
+func (v *_BoolCollection) MustGet(i int) bool {
+	if x, err := v.Get(i); err != nil {
+		panic(err)
+	} else {
+		return x
+	}
+}
+
+func (v *_BoolCollection) Iterator() BoolIterator {
+	return NewBoolIterator(v)
+}
+
+type _BoolIterator struct {
+	next int
+	s		[]bool
+}
+
+func NewBoolIterator(col *_BoolCollection) BoolIterator {
+	return &_BoolIterator{next: 0, s: col.s}
+}
+
+func (it *_BoolIterator) HasNext() bool {
+	return it.next < len(it.s)
+}
+
+func (it *_BoolIterator) Next() (bool, error) {
+	if it.HasNext() {
+		val := it.s[it.next]
+		it.next = it.next + 1
+		return val, nil
+	}
+	return false, errors.Errorf("_BoolIterator has no more items")
+}
 
 
 type Float32Collection interface {
@@ -163,7 +318,6 @@ func (it *_Float32Iterator) Next() (float32, error) {
 }
 
 
-
 type Float64Collection interface {
 	Clear()
 	Index(rhs float64) (int, error)
@@ -316,7 +470,6 @@ func (it *_Float64Iterator) Next() (float64, error) {
 	}
 	return 0, errors.Errorf("_Float64Iterator has no more items")
 }
-
 
 
 type IntCollection interface {
@@ -473,6 +626,159 @@ func (it *_IntIterator) Next() (int, error) {
 }
 
 
+type Int16Collection interface {
+	Clear()
+	Index(rhs int16) (int, error)
+	Insert(i int, n int16) error
+	Append(n int16)
+	Remove(i int) error
+	Count() int
+	Get(i int) (int16, error)
+	Set(i int, n int16) error
+	MustGet(i int) int16
+	Iterator() Int16Iterator
+}
+
+type Int16Iterator interface {
+	HasNext() bool
+	Next() (int16, error)
+}
+
+type _Int16Collection struct {
+	s []int16
+}
+
+// compile-time assurance that the struct matches the interface
+var (
+	_ Int16Collection = &_Int16Collection{}
+	_ json.Marshaler = &_Int16Collection{}
+	_ json.Unmarshaler = &_Int16Collection{}
+)
+
+func NewInt16Collection() Int16Collection {
+	return &_Int16Collection{}
+}
+
+func NewInt16CollectionFrom(ss ...int16) Int16Collection {
+	return &_Int16Collection{ss}
+}
+
+func (v *_Int16Collection) Clear() {
+	v.s = v.s[:0]
+}
+
+func (v *_Int16Collection) MarshalJSON() ([]byte, error) {
+	return json.Marshal(v.s)
+}
+
+func Int16Collection_MarshalJSONWith(this Int16Collection, marshal func(int16) ([]byte, error)) ([]byte, error) {
+	col := make([]customint16Marshaler, 0, this.Count())
+	next := this.Iterator().Next
+	for x, err := next(); err == nil; x, err = next() {
+		col = append(col, customint16Marshaler{x, marshal})
+	}
+	return json.Marshal(col)
+}
+
+type customint16Marshaler struct {
+	v       int16
+	marshal func(int16) ([]byte, error)
+}
+
+func (v customint16Marshaler) MarshalJSON() ([]byte, error) {
+	return v.marshal(v.v)
+}
+
+func (v *_Int16Collection) UnmarshalJSON(data []byte) error {
+	return json.Unmarshal(data, &v.s)
+}
+
+func (v *_Int16Collection) Index(rhs int16) (int, error) {
+	for i, lhs := range v.s {
+		if lhs == rhs {
+			return i, nil
+		}
+	}
+	return -1, errors.Errorf("int16 not found in _Int16Collection")
+}
+
+func (v *_Int16Collection) Insert(i int, n int16) error {
+	if i < 0 || i > len(v.s) {
+		return errors.Errorf("_Int16Collection error trying to insert at invalid index %d\n", i)
+	}
+	v.s = append(v.s, 0)
+	copy(v.s[i+1:], v.s[i:])
+	v.s[i] = n
+	return nil
+}
+
+func (v *_Int16Collection) Append(n int16) {
+	v.s = append(v.s, n)
+}
+
+func (v *_Int16Collection) Remove(i int) error {
+	if i < 0 || i >= len(v.s) {
+		return errors.Errorf("_Int16Collection error trying to remove invalid index %d\n", i)
+	}
+	copy(v.s[i:], v.s[i+1:])
+	v.s[len(v.s)-1] = 0
+	v.s = v.s[:len(v.s)-1]
+	return nil
+}
+
+func (v *_Int16Collection) Count() int {
+	return len(v.s)
+}
+
+func (v *_Int16Collection) Get(i int) (int16, error) {
+	if i < 0 || i >= len(v.s) {
+		return 0, errors.Errorf("_Int16Collection invalid index %d\n", i)
+	}
+	return v.s[i], nil
+}
+
+func (v *_Int16Collection) Set(i int, n int16) error {
+	if i < 0 || i > len(v.s) {
+		return errors.Errorf("_Int16Collection error trying to insert at invalid index %d\n", i)
+	}
+	v.s[i] = n
+	return nil
+}
+
+func (v *_Int16Collection) MustGet(i int) int16 {
+	if x, err := v.Get(i); err != nil {
+		panic(err)
+	} else {
+		return x
+	}
+}
+
+func (v *_Int16Collection) Iterator() Int16Iterator {
+	return NewInt16Iterator(v)
+}
+
+type _Int16Iterator struct {
+	next int
+	s		[]int16
+}
+
+func NewInt16Iterator(col *_Int16Collection) Int16Iterator {
+	return &_Int16Iterator{next: 0, s: col.s}
+}
+
+func (it *_Int16Iterator) HasNext() bool {
+	return it.next < len(it.s)
+}
+
+func (it *_Int16Iterator) Next() (int16, error) {
+	if it.HasNext() {
+		val := it.s[it.next]
+		it.next = it.next + 1
+		return val, nil
+	}
+	return 0, errors.Errorf("_Int16Iterator has no more items")
+}
+
 
 type Int32Collection interface {
 	Clear()
@@ -626,7 +932,6 @@ func (it *_Int32Iterator) Next() (int32, error) {
 	}
 	return 0, errors.Errorf("_Int32Iterator has no more items")
 }
-
 
 
 type Int64Collection interface {
@@ -783,6 +1088,159 @@ func (it *_Int64Iterator) Next() (int64, error) {
 }
 
 
+type Int8Collection interface {
+	Clear()
+	Index(rhs int8) (int, error)
+	Insert(i int, n int8) error
+	Append(n int8)
+	Remove(i int) error
+	Count() int
+	Get(i int) (int8, error)
+	Set(i int, n int8) error
+	MustGet(i int) int8
+	Iterator() Int8Iterator
+}
+
+type Int8Iterator interface {
+	HasNext() bool
+	Next() (int8, error)
+}
+
+type _Int8Collection struct {
+	s []int8
+}
+
+// compile-time assurance that the struct matches the interface
+var (
+	_ Int8Collection = &_Int8Collection{}
+	_ json.Marshaler = &_Int8Collection{}
+	_ json.Unmarshaler = &_Int8Collection{}
+)
+
+func NewInt8Collection() Int8Collection {
+	return &_Int8Collection{}
+}
+
+func NewInt8CollectionFrom(ss ...int8) Int8Collection {
+	return &_Int8Collection{ss}
+}
+
+func (v *_Int8Collection) Clear() {
+	v.s = v.s[:0]
+}
+
+func (v *_Int8Collection) MarshalJSON() ([]byte, error) {
+	return json.Marshal(v.s)
+}
+
+func Int8Collection_MarshalJSONWith(this Int8Collection, marshal func(int8) ([]byte, error)) ([]byte, error) {
+	col := make([]customint8Marshaler, 0, this.Count())
+	next := this.Iterator().Next
+	for x, err := next(); err == nil; x, err = next() {
+		col = append(col, customint8Marshaler{x, marshal})
+	}
+	return json.Marshal(col)
+}
+
+type customint8Marshaler struct {
+	v       int8
+	marshal func(int8) ([]byte, error)
+}
+
+func (v customint8Marshaler) MarshalJSON() ([]byte, error) {
+	return v.marshal(v.v)
+}
+
+func (v *_Int8Collection) UnmarshalJSON(data []byte) error {
+	return json.Unmarshal(data, &v.s)
+}
+
+func (v *_Int8Collection) Index(rhs int8) (int, error) {
+	for i, lhs := range v.s {
+		if lhs == rhs {
+			return i, nil
+		}
+	}
+	return -1, errors.Errorf("int8 not found in _Int8Collection")
+}
+
+func (v *_Int8Collection) Insert(i int, n int8) error {
+	if i < 0 || i > len(v.s) {
+		return errors.Errorf("_Int8Collection error trying to insert at invalid index %d\n", i)
+	}
+	v.s = append(v.s, 0)
+	copy(v.s[i+1:], v.s[i:])
+	v.s[i] = n
+	return nil
+}
+
+func (v *_Int8Collection) Append(n int8) {
+	v.s = append(v.s, n)
+}
+
+func (v *_Int8Collection) Remove(i int) error {
+	if i < 0 || i >= len(v.s) {
+		return errors.Errorf("_Int8Collection error trying to remove invalid index %d\n", i)
+	}
+	copy(v.s[i:], v.s[i+1:])
+	v.s[len(v.s)-1] = 0
+	v.s = v.s[:len(v.s)-1]
+	return nil
+}
+
+func (v *_Int8Collection) Count() int {
+	return len(v.s)
+}
+
+func (v *_Int8Collection) Get(i int) (int8, error) {
+	if i < 0 || i >= len(v.s) {
+		return 0, errors.Errorf("_Int8Collection invalid index %d\n", i)
+	}
+	return v.s[i], nil
+}
+
+func (v *_Int8Collection) Set(i int, n int8) error {
+	if i < 0 || i > len(v.s) {
+		return errors.Errorf("_Int8Collection error trying to insert at invalid index %d\n", i)
+	}
+	v.s[i] = n
+	return nil
+}
+
+func (v *_Int8Collection) MustGet(i int) int8 {
+	if x, err := v.Get(i); err != nil {
+		panic(err)
+	} else {
+		return x
+	}
+}
+
+func (v *_Int8Collection) Iterator() Int8Iterator {
+	return NewInt8Iterator(v)
+}
+
+type _Int8Iterator struct {
+	next int
+	s		[]int8
+}
+
+func NewInt8Iterator(col *_Int8Collection) Int8Iterator {
+	return &_Int8Iterator{next: 0, s: col.s}
+}
+
+func (it *_Int8Iterator) HasNext() bool {
+	return it.next < len(it.s)
+}
+
+func (it *_Int8Iterator) Next() (int8, error) {
+	if it.HasNext() {
+		val := it.s[it.next]
+		it.next = it.next + 1
+		return val, nil
+	}
+	return 0, errors.Errorf("_Int8Iterator has no more items")
+}
+
 
 type StringCollection interface {
 	Clear()
@@ -936,4 +1394,775 @@ func (it *_StringIterator) Next() (string, error) {
 	}
 	return "", errors.Errorf("_StringIterator has no more items")
 }
+
+
+type UintCollection interface {
+	Clear()
+	Index(rhs uint) (int, error)
+	Insert(i int, n uint) error
+	Append(n uint)
+	Remove(i int) error
+	Count() int
+	Get(i int) (uint, error)
+	Set(i int, n uint) error
+	MustGet(i int) uint
+	Iterator() UintIterator
+}
+
+type UintIterator interface {
+	HasNext() bool
+	Next() (uint, error)
+}
+
+type _UintCollection struct {
+	s []uint
+}
+
+// compile-time assurance that the struct matches the interface
+var (
+	_ UintCollection = &_UintCollection{}
+	_ json.Marshaler = &_UintCollection{}
+	_ json.Unmarshaler = &_UintCollection{}
+)
+
+func NewUintCollection() UintCollection {
+	return &_UintCollection{}
+}
+
+func NewUintCollectionFrom(ss ...uint) UintCollection {
+	return &_UintCollection{ss}
+}
+
+func (v *_UintCollection) Clear() {
+	v.s = v.s[:0]
+}
+
+func (v *_UintCollection) MarshalJSON() ([]byte, error) {
+	return json.Marshal(v.s)
+}
+
+func UintCollection_MarshalJSONWith(this UintCollection, marshal func(uint) ([]byte, error)) ([]byte, error) {
+	col := make([]customuintMarshaler, 0, this.Count())
+	next := this.Iterator().Next
+	for x, err := next(); err == nil; x, err = next() {
+		col = append(col, customuintMarshaler{x, marshal})
+	}
+	return json.Marshal(col)
+}
+
+type customuintMarshaler struct {
+	v       uint
+	marshal func(uint) ([]byte, error)
+}
+
+func (v customuintMarshaler) MarshalJSON() ([]byte, error) {
+	return v.marshal(v.v)
+}
+
+func (v *_UintCollection) UnmarshalJSON(data []byte) error {
+	return json.Unmarshal(data, &v.s)
+}
+
+func (v *_UintCollection) Index(rhs uint) (int, error) {
+	for i, lhs := range v.s {
+		if lhs == rhs {
+			return i, nil
+		}
+	}
+	return -1, errors.Errorf("uint not found in _UintCollection")
+}
+
+func (v *_UintCollection) Insert(i int, n uint) error {
+	if i < 0 || i > len(v.s) {
+		return errors.Errorf("_UintCollection error trying to insert at invalid index %d\n", i)
+	}
+	v.s = append(v.s, 0)
+	copy(v.s[i+1:], v.s[i:])
+	v.s[i] = n
+	return nil
+}
+
+func (v *_UintCollection) Append(n uint) {
+	v.s = append(v.s, n)
+}
+
+func (v *_UintCollection) Remove(i int) error {
+	if i < 0 || i >= len(v.s) {
+		return errors.Errorf("_UintCollection error trying to remove invalid index %d\n", i)
+	}
+	copy(v.s[i:], v.s[i+1:])
+	v.s[len(v.s)-1] = 0
+	v.s = v.s[:len(v.s)-1]
+	return nil
+}
+
+func (v *_UintCollection) Count() int {
+	return len(v.s)
+}
+
+func (v *_UintCollection) Get(i int) (uint, error) {
+	if i < 0 || i >= len(v.s) {
+		return 0, errors.Errorf("_UintCollection invalid index %d\n", i)
+	}
+	return v.s[i], nil
+}
+
+func (v *_UintCollection) Set(i int, n uint) error {
+	if i < 0 || i > len(v.s) {
+		return errors.Errorf("_UintCollection error trying to insert at invalid index %d\n", i)
+	}
+	v.s[i] = n
+	return nil
+}
+
+func (v *_UintCollection) MustGet(i int) uint {
+	if x, err := v.Get(i); err != nil {
+		panic(err)
+	} else {
+		return x
+	}
+}
+
+func (v *_UintCollection) Iterator() UintIterator {
+	return NewUintIterator(v)
+}
+
+type _UintIterator struct {
+	next int
+	s		[]uint
+}
+
+func NewUintIterator(col *_UintCollection) UintIterator {
+	return &_UintIterator{next: 0, s: col.s}
+}
+
+func (it *_UintIterator) HasNext() bool {
+	return it.next < len(it.s)
+}
+
+func (it *_UintIterator) Next() (uint, error) {
+	if it.HasNext() {
+		val := it.s[it.next]
+		it.next = it.next + 1
+		return val, nil
+	}
+	return 0, errors.Errorf("_UintIterator has no more items")
+}
+
+
+type Uint16Collection interface {
+	Clear()
+	Index(rhs uint16) (int, error)
+	Insert(i int, n uint16) error
+	Append(n uint16)
+	Remove(i int) error
+	Count() int
+	Get(i int) (uint16, error)
+	Set(i int, n uint16) error
+	MustGet(i int) uint16
+	Iterator() Uint16Iterator
+}
+
+type Uint16Iterator interface {
+	HasNext() bool
+	Next() (uint16, error)
+}
+
+type _Uint16Collection struct {
+	s []uint16
+}
+
+// compile-time assurance that the struct matches the interface
+var (
+	_ Uint16Collection = &_Uint16Collection{}
+	_ json.Marshaler = &_Uint16Collection{}
+	_ json.Unmarshaler = &_Uint16Collection{}
+)
+
+func NewUint16Collection() Uint16Collection {
+	return &_Uint16Collection{}
+}
+
+func NewUint16CollectionFrom(ss ...uint16) Uint16Collection {
+	return &_Uint16Collection{ss}
+}
+
+func (v *_Uint16Collection) Clear() {
+	v.s = v.s[:0]
+}
+
+func (v *_Uint16Collection) MarshalJSON() ([]byte, error) {
+	return json.Marshal(v.s)
+}
+
+func Uint16Collection_MarshalJSONWith(this Uint16Collection, marshal func(uint16) ([]byte, error)) ([]byte, error) {
+	col := make([]customuint16Marshaler, 0, this.Count())
+	next := this.Iterator().Next
+	for x, err := next(); err == nil; x, err = next() {
+		col = append(col, customuint16Marshaler{x, marshal})
+	}
+	return json.Marshal(col)
+}
+
+type customuint16Marshaler struct {
+	v       uint16
+	marshal func(uint16) ([]byte, error)
+}
+
+func (v customuint16Marshaler) MarshalJSON() ([]byte, error) {
+	return v.marshal(v.v)
+}
+
+func (v *_Uint16Collection) UnmarshalJSON(data []byte) error {
+	return json.Unmarshal(data, &v.s)
+}
+
+func (v *_Uint16Collection) Index(rhs uint16) (int, error) {
+	for i, lhs := range v.s {
+		if lhs == rhs {
+			return i, nil
+		}
+	}
+	return -1, errors.Errorf("uint16 not found in _Uint16Collection")
+}
+
+func (v *_Uint16Collection) Insert(i int, n uint16) error {
+	if i < 0 || i > len(v.s) {
+		return errors.Errorf("_Uint16Collection error trying to insert at invalid index %d\n", i)
+	}
+	v.s = append(v.s, 0)
+	copy(v.s[i+1:], v.s[i:])
+	v.s[i] = n
+	return nil
+}
+
+func (v *_Uint16Collection) Append(n uint16) {
+	v.s = append(v.s, n)
+}
+
+func (v *_Uint16Collection) Remove(i int) error {
+	if i < 0 || i >= len(v.s) {
+		return errors.Errorf("_Uint16Collection error trying to remove invalid index %d\n", i)
+	}
+	copy(v.s[i:], v.s[i+1:])
+	v.s[len(v.s)-1] = 0
+	v.s = v.s[:len(v.s)-1]
+	return nil
+}
+
+func (v *_Uint16Collection) Count() int {
+	return len(v.s)
+}
+
+func (v *_Uint16Collection) Get(i int) (uint16, error) {
+	if i < 0 || i >= len(v.s) {
+		return 0, errors.Errorf("_Uint16Collection invalid index %d\n", i)
+	}
+	return v.s[i], nil
+}
+
+func (v *_Uint16Collection) Set(i int, n uint16) error {
+	if i < 0 || i > len(v.s) {
+		return errors.Errorf("_Uint16Collection error trying to insert at invalid index %d\n", i)
+	}
+	v.s[i] = n
+	return nil
+}
+
+func (v *_Uint16Collection) MustGet(i int) uint16 {
+	if x, err := v.Get(i); err != nil {
+		panic(err)
+	} else {
+		return x
+	}
+}
+
+func (v *_Uint16Collection) Iterator() Uint16Iterator {
+	return NewUint16Iterator(v)
+}
+
+type _Uint16Iterator struct {
+	next int
+	s		[]uint16
+}
+
+func NewUint16Iterator(col *_Uint16Collection) Uint16Iterator {
+	return &_Uint16Iterator{next: 0, s: col.s}
+}
+
+func (it *_Uint16Iterator) HasNext() bool {
+	return it.next < len(it.s)
+}
+
+func (it *_Uint16Iterator) Next() (uint16, error) {
+	if it.HasNext() {
+		val := it.s[it.next]
+		it.next = it.next + 1
+		return val, nil
+	}
+	return 0, errors.Errorf("_Uint16Iterator has no more items")
+}
+
+
+type Uint32Collection interface {
+	Clear()
+	Index(rhs uint32) (int, error)
+	Insert(i int, n uint32) error
+	Append(n uint32)
+	Remove(i int) error
+	Count() int
+	Get(i int) (uint32, error)
+	Set(i int, n uint32) error
+	MustGet(i int) uint32
+	Iterator() Uint32Iterator
+}
+
+type Uint32Iterator interface {
+	HasNext() bool
+	Next() (uint32, error)
+}
+
+type _Uint32Collection struct {
+	s []uint32
+}
+
+// compile-time assurance that the struct matches the interface
+var (
+	_ Uint32Collection = &_Uint32Collection{}
+	_ json.Marshaler = &_Uint32Collection{}
+	_ json.Unmarshaler = &_Uint32Collection{}
+)
+
+func NewUint32Collection() Uint32Collection {
+	return &_Uint32Collection{}
+}
+
+func NewUint32CollectionFrom(ss ...uint32) Uint32Collection {
+	return &_Uint32Collection{ss}
+}
+
+func (v *_Uint32Collection) Clear() {
+	v.s = v.s[:0]
+}
+
+func (v *_Uint32Collection) MarshalJSON() ([]byte, error) {
+	return json.Marshal(v.s)
+}
+
+func Uint32Collection_MarshalJSONWith(this Uint32Collection, marshal func(uint32) ([]byte, error)) ([]byte, error) {
+	col := make([]customuint32Marshaler, 0, this.Count())
+	next := this.Iterator().Next
+	for x, err := next(); err == nil; x, err = next() {
+		col = append(col, customuint32Marshaler{x, marshal})
+	}
+	return json.Marshal(col)
+}
+
+type customuint32Marshaler struct {
+	v       uint32
+	marshal func(uint32) ([]byte, error)
+}
+
+func (v customuint32Marshaler) MarshalJSON() ([]byte, error) {
+	return v.marshal(v.v)
+}
+
+func (v *_Uint32Collection) UnmarshalJSON(data []byte) error {
+	return json.Unmarshal(data, &v.s)
+}
+
+func (v *_Uint32Collection) Index(rhs uint32) (int, error) {
+	for i, lhs := range v.s {
+		if lhs == rhs {
+			return i, nil
+		}
+	}
+	return -1, errors.Errorf("uint32 not found in _Uint32Collection")
+}
+
+func (v *_Uint32Collection) Insert(i int, n uint32) error {
+	if i < 0 || i > len(v.s) {
+		return errors.Errorf("_Uint32Collection error trying to insert at invalid index %d\n", i)
+	}
+	v.s = append(v.s, 0)
+	copy(v.s[i+1:], v.s[i:])
+	v.s[i] = n
+	return nil
+}
+
+func (v *_Uint32Collection) Append(n uint32) {
+	v.s = append(v.s, n)
+}
+
+func (v *_Uint32Collection) Remove(i int) error {
+	if i < 0 || i >= len(v.s) {
+		return errors.Errorf("_Uint32Collection error trying to remove invalid index %d\n", i)
+	}
+	copy(v.s[i:], v.s[i+1:])
+	v.s[len(v.s)-1] = 0
+	v.s = v.s[:len(v.s)-1]
+	return nil
+}
+
+func (v *_Uint32Collection) Count() int {
+	return len(v.s)
+}
+
+func (v *_Uint32Collection) Get(i int) (uint32, error) {
+	if i < 0 || i >= len(v.s) {
+		return 0, errors.Errorf("_Uint32Collection invalid index %d\n", i)
+	}
+	return v.s[i], nil
+}
+
+func (v *_Uint32Collection) Set(i int, n uint32) error {
+	if i < 0 || i > len(v.s) {
+		return errors.Errorf("_Uint32Collection error trying to insert at invalid index %d\n", i)
+	}
+	v.s[i] = n
+	return nil
+}
+
+func (v *_Uint32Collection) MustGet(i int) uint32 {
+	if x, err := v.Get(i); err != nil {
+		panic(err)
+	} else {
+		return x
+	}
+}
+
+func (v *_Uint32Collection) Iterator() Uint32Iterator {
+	return NewUint32Iterator(v)
+}
+
+type _Uint32Iterator struct {
+	next int
+	s		[]uint32
+}
+
+func NewUint32Iterator(col *_Uint32Collection) Uint32Iterator {
+	return &_Uint32Iterator{next: 0, s: col.s}
+}
+
+func (it *_Uint32Iterator) HasNext() bool {
+	return it.next < len(it.s)
+}
+
+func (it *_Uint32Iterator) Next() (uint32, error) {
+	if it.HasNext() {
+		val := it.s[it.next]
+		it.next = it.next + 1
+		return val, nil
+	}
+	return 0, errors.Errorf("_Uint32Iterator has no more items")
+}
+
+
+type Uint64Collection interface {
+	Clear()
+	Index(rhs uint64) (int, error)
+	Insert(i int, n uint64) error
+	Append(n uint64)
+	Remove(i int) error
+	Count() int
+	Get(i int) (uint64, error)
+	Set(i int, n uint64) error
+	MustGet(i int) uint64
+	Iterator() Uint64Iterator
+}
+
+type Uint64Iterator interface {
+	HasNext() bool
+	Next() (uint64, error)
+}
+
+type _Uint64Collection struct {
+	s []uint64
+}
+
+// compile-time assurance that the struct matches the interface
+var (
+	_ Uint64Collection = &_Uint64Collection{}
+	_ json.Marshaler = &_Uint64Collection{}
+	_ json.Unmarshaler = &_Uint64Collection{}
+)
+
+func NewUint64Collection() Uint64Collection {
+	return &_Uint64Collection{}
+}
+
+func NewUint64CollectionFrom(ss ...uint64) Uint64Collection {
+	return &_Uint64Collection{ss}
+}
+
+func (v *_Uint64Collection) Clear() {
+	v.s = v.s[:0]
+}
+
+func (v *_Uint64Collection) MarshalJSON() ([]byte, error) {
+	return json.Marshal(v.s)
+}
+
+func Uint64Collection_MarshalJSONWith(this Uint64Collection, marshal func(uint64) ([]byte, error)) ([]byte, error) {
+	col := make([]customuint64Marshaler, 0, this.Count())
+	next := this.Iterator().Next
+	for x, err := next(); err == nil; x, err = next() {
+		col = append(col, customuint64Marshaler{x, marshal})
+	}
+	return json.Marshal(col)
+}
+
+type customuint64Marshaler struct {
+	v       uint64
+	marshal func(uint64) ([]byte, error)
+}
+
+func (v customuint64Marshaler) MarshalJSON() ([]byte, error) {
+	return v.marshal(v.v)
+}
+
+func (v *_Uint64Collection) UnmarshalJSON(data []byte) error {
+	return json.Unmarshal(data, &v.s)
+}
+
+func (v *_Uint64Collection) Index(rhs uint64) (int, error) {
+	for i, lhs := range v.s {
+		if lhs == rhs {
+			return i, nil
+		}
+	}
+	return -1, errors.Errorf("uint64 not found in _Uint64Collection")
+}
+
+func (v *_Uint64Collection) Insert(i int, n uint64) error {
+	if i < 0 || i > len(v.s) {
+		return errors.Errorf("_Uint64Collection error trying to insert at invalid index %d\n", i)
+	}
+	v.s = append(v.s, 0)
+	copy(v.s[i+1:], v.s[i:])
+	v.s[i] = n
+	return nil
+}
+
+func (v *_Uint64Collection) Append(n uint64) {
+	v.s = append(v.s, n)
+}
+
+func (v *_Uint64Collection) Remove(i int) error {
+	if i < 0 || i >= len(v.s) {
+		return errors.Errorf("_Uint64Collection error trying to remove invalid index %d\n", i)
+	}
+	copy(v.s[i:], v.s[i+1:])
+	v.s[len(v.s)-1] = 0
+	v.s = v.s[:len(v.s)-1]
+	return nil
+}
+
+func (v *_Uint64Collection) Count() int {
+	return len(v.s)
+}
+
+func (v *_Uint64Collection) Get(i int) (uint64, error) {
+	if i < 0 || i >= len(v.s) {
+		return 0, errors.Errorf("_Uint64Collection invalid index %d\n", i)
+	}
+	return v.s[i], nil
+}
+
+func (v *_Uint64Collection) Set(i int, n uint64) error {
+	if i < 0 || i > len(v.s) {
+		return errors.Errorf("_Uint64Collection error trying to insert at invalid index %d\n", i)
+	}
+	v.s[i] = n
+	return nil
+}
+
+func (v *_Uint64Collection) MustGet(i int) uint64 {
+	if x, err := v.Get(i); err != nil {
+		panic(err)
+	} else {
+		return x
+	}
+}
+
+func (v *_Uint64Collection) Iterator() Uint64Iterator {
+	return NewUint64Iterator(v)
+}
+
+type _Uint64Iterator struct {
+	next int
+	s		[]uint64
+}
+
+func NewUint64Iterator(col *_Uint64Collection) Uint64Iterator {
+	return &_Uint64Iterator{next: 0, s: col.s}
+}
+
+func (it *_Uint64Iterator) HasNext() bool {
+	return it.next < len(it.s)
+}
+
+func (it *_Uint64Iterator) Next() (uint64, error) {
+	if it.HasNext() {
+		val := it.s[it.next]
+		it.next = it.next + 1
+		return val, nil
+	}
+	return 0, errors.Errorf("_Uint64Iterator has no more items")
+}
+
+
+type Uint8Collection interface {
+	Clear()
+	Index(rhs uint8) (int, error)
+	Insert(i int, n uint8) error
+	Append(n uint8)
+	Remove(i int) error
+	Count() int
+	Get(i int) (uint8, error)
+	Set(i int, n uint8) error
+	MustGet(i int) uint8
+	Iterator() Uint8Iterator
+}
+
+type Uint8Iterator interface {
+	HasNext() bool
+	Next() (uint8, error)
+}
+
+type _Uint8Collection struct {
+	s []uint8
+}
+
+// compile-time assurance that the struct matches the interface
+var (
+	_ Uint8Collection = &_Uint8Collection{}
+	_ json.Marshaler = &_Uint8Collection{}
+	_ json.Unmarshaler = &_Uint8Collection{}
+)
+
+func NewUint8Collection() Uint8Collection {
+	return &_Uint8Collection{}
+}
+
+func NewUint8CollectionFrom(ss ...uint8) Uint8Collection {
+	return &_Uint8Collection{ss}
+}
+
+func (v *_Uint8Collection) Clear() {
+	v.s = v.s[:0]
+}
+
+func (v *_Uint8Collection) MarshalJSON() ([]byte, error) {
+	return json.Marshal(v.s)
+}
+
+func Uint8Collection_MarshalJSONWith(this Uint8Collection, marshal func(uint8) ([]byte, error)) ([]byte, error) {
+	col := make([]customuint8Marshaler, 0, this.Count())
+	next := this.Iterator().Next
+	for x, err := next(); err == nil; x, err = next() {
+		col = append(col, customuint8Marshaler{x, marshal})
+	}
+	return json.Marshal(col)
+}
+
+type customuint8Marshaler struct {
+	v       uint8
+	marshal func(uint8) ([]byte, error)
+}
+
+func (v customuint8Marshaler) MarshalJSON() ([]byte, error) {
+	return v.marshal(v.v)
+}
+
+func (v *_Uint8Collection) UnmarshalJSON(data []byte) error {
+	return json.Unmarshal(data, &v.s)
+}
+
+func (v *_Uint8Collection) Index(rhs uint8) (int, error) {
+	for i, lhs := range v.s {
+		if lhs == rhs {
+			return i, nil
+		}
+	}
+	return -1, errors.Errorf("uint8 not found in _Uint8Collection")
+}
+
+func (v *_Uint8Collection) Insert(i int, n uint8) error {
+	if i < 0 || i > len(v.s) {
+		return errors.Errorf("_Uint8Collection error trying to insert at invalid index %d\n", i)
+	}
+	v.s = append(v.s, 0)
+	copy(v.s[i+1:], v.s[i:])
+	v.s[i] = n
+	return nil
+}
+
+func (v *_Uint8Collection) Append(n uint8) {
+	v.s = append(v.s, n)
+}
+
+func (v *_Uint8Collection) Remove(i int) error {
+	if i < 0 || i >= len(v.s) {
+		return errors.Errorf("_Uint8Collection error trying to remove invalid index %d\n", i)
+	}
+	copy(v.s[i:], v.s[i+1:])
+	v.s[len(v.s)-1] = 0
+	v.s = v.s[:len(v.s)-1]
+	return nil
+}
+
+func (v *_Uint8Collection) Count() int {
+	return len(v.s)
+}
+
+func (v *_Uint8Collection) Get(i int) (uint8, error) {
+	if i < 0 || i >= len(v.s) {
+		return 0, errors.Errorf("_Uint8Collection invalid index %d\n", i)
+	}
+	return v.s[i], nil
+}
+
+func (v *_Uint8Collection) Set(i int, n uint8) error {
+	if i < 0 || i > len(v.s) {
+		return errors.Errorf("_Uint8Collection error trying to insert at invalid index %d\n", i)
+	}
+	v.s[i] = n
+	return nil
+}
+
+func (v *_Uint8Collection) MustGet(i int) uint8 {
+	if x, err := v.Get(i); err != nil {
+		panic(err)
+	} else {
+		return x
+	}
+}
+
+func (v *_Uint8Collection) Iterator() Uint8Iterator {
+	return NewUint8Iterator(v)
+}
+
+type _Uint8Iterator struct {
+	next int
+	s		[]uint8
+}
+
+func NewUint8Iterator(col *_Uint8Collection) Uint8Iterator {
+	return &_Uint8Iterator{next: 0, s: col.s}
+}
+
+func (it *_Uint8Iterator) HasNext() bool {
+	return it.next < len(it.s)
+}
+
+func (it *_Uint8Iterator) Next() (uint8, error) {
+	if it.HasNext() {
+		val := it.s[it.next]
+		it.next = it.next + 1
+		return val, nil
+	}
+	return 0, errors.Errorf("_Uint8Iterator has no more items")
+}
+
 

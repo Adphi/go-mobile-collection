@@ -132,7 +132,6 @@ func main() {
 		},
 	}
 	cmd.Flags().StringP("natives", "n", "", "Generate collection for native types (string, ints, floats) inside given package")
-	cmd.Flags().BoolP("includes", "i", true, "generate package name and includes")
 	cmd.Execute()
 
 }

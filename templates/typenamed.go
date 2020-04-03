@@ -13,7 +13,12 @@ var (
 	Get(i int) ({{.Ptr}}{{.Name}}, error)
 	Set(i int, n {{.Ptr}}{{.Name}}) error
 	MustGet(i int) {{.Ptr}}{{.Name}}
+	ForEach(i {{.Name | Title}}ForEachIterator)
 	Iterator() {{.Name | Title}}Iterator
+}
+
+type {{.Name | Title}}ForEachIterator interface {
+	Action({{.Ptr}}{{.Name}})
 }
 
 type {{.Name | Title}}Iterator interface {
@@ -139,6 +144,14 @@ func (v *_{{.Name | Title}}Collection) MustGet(i int) {{.Ptr}}{{.Name}} {
 		panic(err)
 	} else {
 		return x
+	}
+}
+
+func (v *_{{.Name | Title}}Collection) ForEach(i {{.Name | Title}}ForEachIterator) {
+	it := v.Iterator()
+	for it.HasNext() {
+		e, _ := it.Next()
+		i.Action(e)
 	}
 }
 
